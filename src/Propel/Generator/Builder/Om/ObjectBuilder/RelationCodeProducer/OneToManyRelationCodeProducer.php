@@ -68,7 +68,7 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
     /**
      * If $variable contains all objects in $relationIdentifier relation.
      */
-    protected bool {$variable}Partial = false;\n";
+    protected ?bool {$variable}Partial = null;\n";
     }
 
     /**
