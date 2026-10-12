@@ -10,7 +10,6 @@ namespace Propel\Tests\Runtime\ActiveQuery\Criterion;
 
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\LikeCriterion;
-use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Adapter\Pdo\SqliteAdapter;
 use Propel\Tests\Helpers\BaseTestCase;
 
@@ -89,62 +88,6 @@ class LikeCriterionTest extends BaseTestCase
         $cton->appendPsTo($ps, $params);
 
         $this->assertEquals('UPPER(A.COL) NOT LIKE UPPER(:p1)', $ps);
-        $expected = [
-            ['table' => 'A', 'column' => 'COL', 'value' => 'foo%'],
-        ];
-        $this->assertEquals($expected, $params);
-    }
-
-    /**
-     * @return void
-     */
-    public function testAppendPsToBehavesTheSameOnPostgreSQLByDefault()
-    {
-        $cton = new LikeCriterion(new Criteria(), 'A.COL', 'foo%', Criteria::LIKE);
-        $cton->setAdapter(new PgsqlAdapter());
-        $params = [];
-        $ps = '';
-        $cton->appendPsTo($ps, $params);
-
-        $this->assertEquals('A.COL LIKE :p1', $ps);
-        $expected = [
-            ['table' => 'A', 'column' => 'COL', 'value' => 'foo%'],
-        ];
-        $this->assertEquals($expected, $params);
-    }
-
-    /**
-     * @return void
-     */
-    public function testAppendPsToWithCaseInsensitiveAndPostgreSQLUsesILIKE()
-    {
-        $cton = new LikeCriterion(new Criteria(), 'A.COL', 'foo%', Criteria::LIKE);
-        $cton->setAdapter(new PgsqlAdapter());
-        $cton->setIgnoreCase(true);
-        $params = [];
-        $ps = '';
-        $cton->appendPsTo($ps, $params);
-
-        $this->assertEquals('A.COL ILIKE :p1', $ps);
-        $expected = [
-            ['table' => 'A', 'column' => 'COL', 'value' => 'foo%'],
-        ];
-        $this->assertEquals($expected, $params);
-    }
-
-    /**
-     * @return void
-     */
-    public function testAppendPsToWithCaseInsensitiveAndPostgreSQLUsesNOTILIKE()
-    {
-        $cton = new LikeCriterion(new Criteria(), 'A.COL', 'foo%', Criteria::NOT_LIKE);
-        $cton->setAdapter(new PgsqlAdapter());
-        $cton->setIgnoreCase(true);
-        $params = [];
-        $ps = '';
-        $cton->appendPsTo($ps, $params);
-
-        $this->assertEquals('A.COL NOT ILIKE :p1', $ps);
         $expected = [
             ['table' => 'A', 'column' => 'COL', 'value' => 'foo%'],
         ];

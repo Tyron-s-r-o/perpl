@@ -4,9 +4,6 @@ declare(strict_types = 1);
 
 namespace Propel\Runtime\ActiveQuery\FilterExpression;
 
-use Propel\Runtime\ActiveQuery\Criteria;
-use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
-
 class LikeColumnFilter extends ColumnFilter
 {
     /**
@@ -21,18 +18,12 @@ class LikeColumnFilter extends ColumnFilter
         $bindParam = $this->addParameter($paramCollector);
 
         if ($this->isIgnoreCase()) {
-            // If selection is case insensitive use ILIKE for PostgreSQL or SQL
-            // UPPER() function on column name for other databases.
+            // If selection is case insensitive use SQL UPPER() function on column name and param.
 
             /** @var \Propel\Runtime\Adapter\SqlAdapterInterface $adapter */
             $adapter = $this->query->getAdapter();
-            if ($adapter instanceof PgsqlAdapter) {
-                $this->operator = ($this->operator === Criteria::LIKE || $this->operator === Criteria::ILIKE) ? Criteria::ILIKE : Criteria::NOT_ILIKE;
-            } else {
-                // UPPER function needs to be set on param and field
-                $bindParam = $adapter->ignoreCase($bindParam);
-                $field = $adapter->ignoreCase($field);
-            }
+            $bindParam = $adapter->ignoreCase($bindParam);
+            $field = $adapter->ignoreCase($field);
         }
 
         return "$field{$this->operator}$bindParam";

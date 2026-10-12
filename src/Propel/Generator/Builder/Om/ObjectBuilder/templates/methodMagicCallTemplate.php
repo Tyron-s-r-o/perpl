@@ -1,6 +1,6 @@
 <?php if ($behaviorCallScript): ?>
     /**
-     * Provides magic import/export method support (fromXML()/toXML(), fromYAML()/toYAML(), etc.).
+     * Provides magic import/export method support (fromJSON()/toJSON()).
      * Allows to define default __call() behavior if you overwrite __call()
      *
      * @param string $name
@@ -17,7 +17,7 @@
 
 <?php endif?>
     /**
-     * Provides magic import/export method support (fromXML()/toXML(), fromYAML()/toYAML(), etc.).
+     * Provides magic import/export method support (fromJSON()/toJSON()).
      * Allows to define default __call() behavior if you overwrite __call()
      *
      * @param string $name

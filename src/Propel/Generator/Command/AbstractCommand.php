@@ -65,7 +65,7 @@ abstract class AbstractCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('platform', null, InputOption::VALUE_REQUIRED, 'The platform to use. Define a full qualified class name or mysql|pgsql|sqlite|mssql|oracle.')
+            ->addOption('platform', null, InputOption::VALUE_REQUIRED, 'The platform to use. Define a full qualified class name or mysql|sqlite.')
             ->addOption('config-dir', null, InputOption::VALUE_REQUIRED, 'The directory where the configuration file is placed.', self::DEFAULT_CONFIG_DIRECTORY)
             ->addOption('recursive', null, InputOption::VALUE_NONE, 'Search recursive for *schema.xml inside the input directory');
     }
@@ -97,7 +97,7 @@ abstract class AbstractCommand extends Command
         }
 
         $availableOptions = array_filter($inputOptionToPath, fn ($param) => $input->hasParameterOption(str_starts_with('--', $param) ? $param : "--$param"), ARRAY_FILTER_USE_KEY);
-        $optionValues = array_map([$input, 'getOption'], array_flip($availableOptions));
+        $optionValues = array_map($input->getOption(...), array_flip($availableOptions));
         $moreProperties = ['propel' => ConfigurationManager::deflateConfigurationArray($optionValues)];
         $properties = array_merge_recursive($properties ?? [], $moreProperties);
 
@@ -221,9 +221,7 @@ Hint:
      */
     protected function getFilesystem(): Filesystem
     {
-        if ($this->filesystem === null) {
-            $this->filesystem = new Filesystem();
-        }
+        $this->filesystem ??= new Filesystem();
 
         return $this->filesystem;
     }
@@ -306,9 +304,7 @@ Hint:
         $config['propel']['database']['connections'][$name]['user'] = isset($infos['user']) && $infos['user'] ? $infos['user'] : null;
         $config['propel']['database']['connections'][$name]['password'] = $infos['password'] ?? null;
 
-        if ($section === null) {
-            $section = 'generator';
-        }
+        $section ??= 'generator';
 
         if ($section === 'reverse') {
             $config['propel']['reverse']['connection'] = $name;

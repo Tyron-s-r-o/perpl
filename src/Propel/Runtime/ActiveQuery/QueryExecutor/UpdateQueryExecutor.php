@@ -56,7 +56,7 @@ class UpdateQueryExecutor extends AbstractQueryExecutor
             }
             $tableName = $tableAlias ?? $tableName;
         }
-        $tableName = $tableName ?? $this->criteria->getTableNameInQuery();
+        $tableName ??= $this->criteria->getTableNameInQuery();
         $filters = $this->criteria->getFilterCollector()->getColumnFilters();
         $builder = new UpdateQuerySqlBuilder($this->criteria);
         $preparedStatementDto = $builder->build($tableName, $filters, $updateValues);

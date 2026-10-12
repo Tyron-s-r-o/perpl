@@ -4,10 +4,10 @@ declare(strict_types = 1);
 
 namespace Propel\Generator\Command;
 
-use Propel\Generator\Behavior\AggregateMultipleColumns\AggregateMultipleColumnsBehavior;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use function addcslashes;
 use function array_map;
 use function chdir;
 use function count;
@@ -18,7 +18,7 @@ use function is_file;
 use function realpath;
 use function sprintf;
 use function str_replace;
-use function substr;
+use function str_starts_with;
 use function ucfirst;
 use const DIRECTORY_SEPARATOR;
 
@@ -59,7 +59,6 @@ class TestPrepareCommand extends AbstractCommand
         'bookstore' => ['bookstore', 'bookstore-cms', 'bookstore-behavior'],
         'namespaced' => ['bookstore_namespaced'],
         'reverse/mysql' => ['reverse-bookstore'],
-        'reverse/pgsql' => ['reverse-bookstore'],
         'schemas' => ['bookstore-schemas'],
         'migration' => ['migration'],
         'quoting' => ['quoting'],
@@ -104,7 +103,6 @@ class TestPrepareCommand extends AbstractCommand
     {
         $exitCode = static::CODE_SUCCESS;
         foreach ($this->fixtures as $fixturesDir => $connections) {
-            $this->resetCounters();
             $buildDir = self::FIXTURES_DIR . DIRECTORY_SEPARATOR . $fixturesDir;
             $exitCode |= $this->buildFixtures($buildDir, $connections, $input, $output);
         }
@@ -141,7 +139,7 @@ class TestPrepareCommand extends AbstractCommand
         chdir($this->root . '/' . $fixturesDir);
 
         if (!$this->buildConfigFromTemplate($vendor, $dsn, $user, $password)) {
-            $output->writeln('<comment>No "propel.yaml.dist" file found, skipped.</comment>');
+            $output->writeln('<comment>No "config-template.php" file found, skipped.</comment>');
         }
 
         $mainConnection = $connections[0];
@@ -167,17 +165,7 @@ class TestPrepareCommand extends AbstractCommand
     }
 
     /**
-     * Reset static members in builder classes. Necessary when test run commands repeatedly.
-     *
-     * @return void
-     */
-    protected function resetCounters(): void
-    {
-        AggregateMultipleColumnsBehavior::resetInsertedAggregationNames();
-    }
-
-    /**
-     * Updates connection information in propel.yaml.dist in current working directory.
+     * Builds perpl.php from config-template.php in current working directory, filling in connection information.
      *
      * @param string $vendor
      * @param string $dsn
@@ -188,24 +176,26 @@ class TestPrepareCommand extends AbstractCommand
      */
     protected function buildConfigFromTemplate(string $vendor, string $dsn, string $user, string $password): bool
     {
-        if (!is_file('config-template.yaml')) {
+        if (!is_file('config-template.php')) {
             return false;
         }
 
-        $content = (string)file_get_contents('config-template.yaml');
+        $content = (string)file_get_contents('config-template.php');
 
-        $content = str_replace('##DATABASE_VENDOR##', $vendor, $content);
-        $content = str_replace('##DATABASE_URL##', $dsn, $content);
-        $content = str_replace('##DATABASE_USER##', $user, $content);
-        $content = str_replace('##DATABASE_PASSWORD##', $password, $content);
+        // placeholders sit inside single-quoted PHP strings
+        $escape = static fn (string $value): string => addcslashes($value, "'\\");
+        $content = str_replace('##DATABASE_VENDOR##', $escape($vendor), $content);
+        $content = str_replace('##DATABASE_URL##', $escape($dsn), $content);
+        $content = str_replace('##DATABASE_USER##', $escape($user), $content);
+        $content = str_replace('##DATABASE_PASSWORD##', $escape($password), $content);
 
-        file_put_contents('perpl.yaml', $content);
+        file_put_contents('perpl.php', $content);
 
         return true;
     }
 
     /**
-     * Convert local perpl.yaml file via config:convert command.
+     * Convert local perpl.php file via config:convert command.
      *
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @param string $connectionName
@@ -214,7 +204,7 @@ class TestPrepareCommand extends AbstractCommand
      */
     protected function runConfigConvertCommand(OutputInterface $output, string $connectionName): void
     {
-        if (!is_file('perpl.yaml')) {
+        if (!is_file('perpl.php')) {
             return;
         }
         $this->runCommand('config:convert', [
@@ -272,7 +262,7 @@ class TestPrepareCommand extends AbstractCommand
      */
     protected function buildConnectionString(array $connections, string $dsn, string|null $user, string|null $password): array
     {
-        $isSqlite = substr($dsn, 0, 6) === 'sqlite';
+        $isSqlite = str_starts_with($dsn, 'sqlite');
 
         return array_map(fn ($con) => $isSqlite ? "$con=$dsn" : "$con=$dsn;user=$user;password=$password", $connections);
     }

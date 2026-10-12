@@ -8,6 +8,7 @@ use Propel\Generator\Config\AbstractGeneratorConfig;
 use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Platform\PlatformInterface;
 use Propel\Generator\Schema\Dumper\XmlDumper;
+use Stringable;
 use function array_any;
 use function array_find;
 use function count;
@@ -17,7 +18,7 @@ use function str_replace;
 /**
  * A class for holding application data structures.
  */
-class Schema
+class Schema implements Stringable
 {
     /**
      * @var array<\Propel\Generator\Model\Database>

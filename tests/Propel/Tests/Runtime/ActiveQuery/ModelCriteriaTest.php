@@ -2250,16 +2250,12 @@ class ModelCriteriaTest extends BookstoreTestBase
         $expectedSQL = $this->getSql("DELETE FROM book WHERE book.title = 'foo'");
         $this->assertEquals($expectedSQL, $con->getLastExecutedQuery(), 'delete() also works on tables with table alias');
 
-        if ($this->runningOnMySQL() || $this->runningOnPostgreSQL()) {
+        if ($this->runningOnMySQL()) {
             $c = new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book');
             $c->setModelAlias('b', true);
             $c->where('b.Title = ?', 'foo');
             $c->delete();
-            if (!$this->runningOnMySQL()) {
-                $expectedSQL = $this->getSql("DELETE FROM book AS b WHERE b.title = 'foo'");
-            } else {
-                $expectedSQL = $this->getSql("DELETE b FROM book AS b WHERE b.title = 'foo'");
-            }
+            $expectedSQL = $this->getSql("DELETE b FROM book AS b WHERE b.title = 'foo'");
             $this->assertEquals($expectedSQL, $con->getLastExecutedQuery(), 'delete() also works on tables with true table alias');
         }
     }
@@ -2336,7 +2332,7 @@ class ModelCriteriaTest extends BookstoreTestBase
         $expectedSQL = $this->getSql("UPDATE book SET title='foo2' WHERE book.title = 'foo'");
         $this->assertEquals($expectedSQL, $con->getLastExecutedQuery(), 'update() also works on tables with table alias');
 
-        if ($this->runningOnMySQL() || $this->runningOnPostgreSQL()) {
+        if ($this->runningOnMySQL()) {
             $c = new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book');
             $c->setModelAlias('b', true);
             $c->where('b.Title = ?', 'foo');
@@ -2626,11 +2622,7 @@ class ModelCriteriaTest extends BookstoreTestBase
         $c = new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book');
         $c->groupByTitle()->find($con);
 
-        if ($this->isDb('pgsql')) {
-            $expectedSQL = 'SELECT book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id FROM book GROUP BY book.title,book.id,book.isbn,book.price,book.publisher_id,book.author_id';
-        } else {
-            $expectedSQL = $this->getSql('SELECT book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id FROM book GROUP BY book.title');
-        }
+        $expectedSQL = $this->getSql('SELECT book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id FROM book GROUP BY book.title');
 
         $this->assertEquals($expectedSQL, $con->getLastExecutedQuery(), 'groupByXXX() is turned into groupBy(XXX)');
     }

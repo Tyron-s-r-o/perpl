@@ -28,7 +28,7 @@ class TableComparator
      */
     public function __construct(?TableDiff $tableDiff = null)
     {
-        $this->tableDiff = ($tableDiff === null) ? new TableDiff() : $tableDiff;
+        $this->tableDiff = $tableDiff ?? new TableDiff();
     }
 
     /**

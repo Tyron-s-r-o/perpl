@@ -56,10 +56,6 @@ abstract class IdTableQuery extends TypedModelCriteria
 {
     /**
      * Initializes internal state of IdTableQuery object.
-     *
-     * @param string $dbName The database name
-     * @param string $modelName The phpName of a model, e.g. 'Book'
-     * @param string|null $modelAlias The alias for the model in this query, e.g. 'b'
      */
     public function __construct(
         string $dbName = '',
@@ -71,9 +67,6 @@ abstract class IdTableQuery extends TypedModelCriteria
 
     /**
      * Returns a new ChildIdTableQuery object.
-     *
-     * @param string|null $modelAlias The alias of a model in the query
-     * @param \Propel\Runtime\ActiveQuery\Criteria|null $criteria Optional Criteria to build the query from
      *
      * @return \IdTableQuery<null>
      */
@@ -103,7 +96,6 @@ abstract class IdTableQuery extends TypedModelCriteria
      * </code>
      *
      * @param int $key Primary key to use for the query
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
      *
      * @return \Base\IdTable|mixed|array the result, formatted by the current formatter
      */
@@ -128,9 +120,6 @@ abstract class IdTableQuery extends TypedModelCriteria
      * Bypass doSelect() and the object formatter by using generated code.
      *
      * @param mixed $key Primary key to use for the query
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con A connection object
-     *
-     * @throws \Propel\Runtime\Exception\PropelException
      *
      * @return \IdTable|null A model object, or null if the key is not found
      */
@@ -165,7 +154,6 @@ abstract class IdTableQuery extends TypedModelCriteria
      * Find object by primary key.
      *
      * @param mixed $key Primary key to use for the query
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con A connection object
      *
      * @return \Base\IdTable|mixed|array|null the result, formatted by the current formatter
      */
@@ -186,7 +174,6 @@ abstract class IdTableQuery extends TypedModelCriteria
      * <code>$c->findPks(array(12, 56, 832), $con);</code>
      *
      * @param array $keys Primary keys to use for the query
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
      *
      * @return \Propel\Runtime\Collection\Collection<\Base\IdTable>|mixed|array the list of results, formatted by the current formatter
      */
@@ -240,7 +227,6 @@ abstract class IdTableQuery extends TypedModelCriteria
      *              Use scalar values for equality.
      *              Use array values for in_array() equivalent.
      *              Use associative array('min' => $minValue, 'max' => $maxValue) for intervals.
-     * @param string|null $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @return $this
      */
@@ -292,10 +278,6 @@ abstract class IdTableQuery extends TypedModelCriteria
 
     /**
      * Deletes all rows from the id_table table.
-     *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con the connection to use
-     *
-     * @return int The number of affected rows (if supported by underlying database driver).
      */
     public function doDeleteAll(?ConnectionInterface $con = null): int
     {
@@ -319,9 +301,6 @@ abstract class IdTableQuery extends TypedModelCriteria
     /**
      * Performs a DELETE on the database based on the current ModelCriteria
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con the connection to use
-     *
-     * @return int The number of affected rows (if supported by underlying database driver). This includes CASCADE-related rows
      *                         if supported by native driver or if emulated using Propel.
      */
     public function delete(?ConnectionInterface $con = null): int

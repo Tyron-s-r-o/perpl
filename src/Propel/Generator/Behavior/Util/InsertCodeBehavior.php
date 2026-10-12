@@ -10,7 +10,6 @@ use Propel\Generator\Builder\Om\ObjectBuilder;
 use Propel\Generator\Builder\Om\QueryBuilder;
 use Propel\Generator\Model\Behavior;
 use Propel\Generator\Model\Table;
-use function get_class;
 use function is_callable;
 use function is_string;
 
@@ -253,7 +252,7 @@ class InsertCodeBehavior extends Behavior
      */
     protected function buildStubBuilder($builder, Table $table): ?AbstractOMBuilder
     {
-        switch (get_class($builder)) {
+        switch ($builder::class) {
             case ObjectBuilder::class:
                 return $builder->getStubObjectBuilder($table);
             case QueryBuilder::class:

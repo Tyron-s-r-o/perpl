@@ -13,7 +13,7 @@ use function defined;
 use function is_array;
 use function is_string;
 use function sprintf;
-use function strpos;
+use function str_contains;
 
 class ConnectionFactory
 {
@@ -64,7 +64,7 @@ class ConnectionFactory
         // connection attributes are those PDO flags that have to be set on the initialized connection
         if (isset($configuration['attributes']) && is_array($configuration['attributes'])) {
             foreach ($configuration['attributes'] as $option => $value) {
-                if (is_string($value) && strpos($value, '::') !== false) {
+                if (is_string($value) && str_contains($value, '::')) {
                     if (!defined($value)) {
                         throw new InvalidArgumentException(sprintf('Invalid class constant specified "%s" while processing connection attributes for datasource "%s"', $value, $connection->getName()));
                     }

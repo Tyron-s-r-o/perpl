@@ -27,6 +27,7 @@ use function in_array;
 use function preg_match;
 use function preg_match_all;
 use function sprintf;
+use function str_contains;
 use function str_ends_with;
 use function str_replace;
 use function str_starts_with;
@@ -251,7 +252,7 @@ class MysqlSchemaParser extends AbstractSchemaParser
         $domain = $this->extractTypeDomain($type, $default, $column->getFullyQualifiedName(), $extra);
         $column->setDomain($domain);
 
-        $autoincrement = (strpos($extra, 'auto_increment') !== false);
+        $autoincrement = (str_contains($extra, 'auto_increment'));
         $column->setAutoIncrement($autoincrement);
 
         $column->setNotNull($null === 'NO');
@@ -388,7 +389,7 @@ class MysqlSchemaParser extends AbstractSchemaParser
 
         if (in_array($default, ['CURRENT_TIMESTAMP', 'current_timestamp()'], true)) {
             $default = 'CURRENT_TIMESTAMP';
-            if (strpos(strtolower($extra), 'on update current_timestamp') !== false) {
+            if (str_contains(strtolower($extra), 'on update current_timestamp')) {
                 $default = 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
             }
             $type = ColumnDefaultValue::TYPE_EXPR;
@@ -583,7 +584,7 @@ EOT;
 
                 $localColumns = [];
                 $foreignColumns = [];
-                if ($table->guessSchemaName() != $database->getSchema() && strpos($ftbl, $database->getPlatform()->getSchemaDelimiter()) === false) {
+                if ($table->guessSchemaName() != $database->getSchema() && !str_contains($ftbl, $database->getPlatform()->getSchemaDelimiter())) {
                     $ftbl = $table->guessSchemaName() . $database->getPlatform()->getSchemaDelimiter() . $ftbl;
                 }
 

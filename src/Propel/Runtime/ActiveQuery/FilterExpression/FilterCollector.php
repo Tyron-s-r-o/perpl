@@ -5,13 +5,14 @@ declare(strict_types = 1);
 namespace Propel\Runtime\ActiveQuery\FilterExpression;
 
 use Propel\Runtime\ActiveQuery\Criteria;
+use Stringable;
 use function array_map;
 use function array_shift;
 use function count;
 use function end;
 use function implode;
 
-class FilterCollector
+class FilterCollector implements Stringable
 {
     /**
      * @var array<\Propel\Runtime\ActiveQuery\FilterExpression\ColumnFilterInterface>

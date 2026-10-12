@@ -6,6 +6,7 @@ namespace Propel\Generator\Builder\Om;
 
 use Propel\Common\Util\PathTrait;
 use Propel\Generator\Builder\DataModelBuilder;
+use Propel\Generator\Builder\Util\DocblockCompactor;
 use Propel\Generator\Builder\Util\PropelTemplate;
 use Propel\Generator\Builder\Util\ReferencedClasses;
 use Propel\Generator\Exception\InvalidArgumentException;
@@ -27,9 +28,10 @@ use function preg_match_all;
 use function preg_replace;
 use function preg_replace_callback;
 use function sprintf;
+use function str_contains;
+use function str_ends_with;
 use function str_replace;
 use function strlen;
-use function strpos;
 use function strtr;
 use function substr;
 use function var_export;
@@ -86,7 +88,7 @@ abstract class AbstractOMBuilder extends DataModelBuilder
         $namespaceStatement = $this->buildNamespaceStatement();
         $strictTypesStatement = $this->declaresStrictTypes() ? "declare(strict_types = 1);\n\n" : '';
 
-        return $this->clean("<?php\n\n{$strictTypesStatement}{$namespaceStatement}{$useStatements}{$script}");
+        return $this->clean("<?php\n\n{$strictTypesStatement}{$namespaceStatement}{$useStatements}" . DocblockCompactor::compact($script));
     }
 
     /**
@@ -224,7 +226,7 @@ abstract class AbstractOMBuilder extends DataModelBuilder
     {
         $pkg = (string)$this->getPackage();
 
-        if (strpos($pkg, '/') !== false) {
+        if (str_contains($pkg, '/')) {
             $pkg = (string)preg_replace('#\.(map|om)$#', '/\1', $pkg);
             $pkg = (string)preg_replace('#\.(Map|Om)$#', '/\1', $pkg);
 
@@ -423,7 +425,7 @@ abstract class AbstractOMBuilder extends DataModelBuilder
             if (!method_exists($modifier, $hookName)) {
                 continue;
             }
-            if (strpos($hookName, 'Filter') !== false) {
+            if (str_contains($hookName, 'Filter')) {
                 // filter hook: the script string will be modified by the behavior
                 $modifier->$hookName($script, $this);
             } else {
@@ -474,9 +476,7 @@ abstract class AbstractOMBuilder extends DataModelBuilder
      */
     public function renderTemplate(string $filename, array $vars = [], ?string $templatePath = null): string
     {
-        if ($templatePath === null) {
-            $templatePath = $this->getTemplatePath(__DIR__);
-        }
+        $templatePath ??= $this->getTemplatePath(__DIR__);
 
         $filePath = $templatePath . $filename;
         if (!file_exists($filePath)) {
@@ -542,9 +542,7 @@ abstract class AbstractOMBuilder extends DataModelBuilder
         $content = (string)preg_replace('/[ \t]*$/m', '', $content);
 
         // indentation
-        $content = (string)preg_replace_callback('/^([ \t]+)/m', function ($matches) {
-            return str_replace("\t", '    ', $matches[0]);
-        }, $content);
+        $content = (string)preg_replace_callback('/^([ \t]+)/m', fn ($matches) => str_replace("\t", '    ', $matches[0]), $content);
 
         // Unused "use" statements
         preg_match_all('/^use (?P<class>[^\s;]+)(?:\s+as\s+(?P<alias>.*))?;/m', $content, $matches, PREG_SET_ORDER);
@@ -563,7 +561,7 @@ abstract class AbstractOMBuilder extends DataModelBuilder
         }
 
         // end of line
-        if (strlen($content) && substr($content, -1) != "\n") {
+        if (strlen($content) && !str_ends_with($content, "\n")) {
             $content = $content . "\n";
         }
 

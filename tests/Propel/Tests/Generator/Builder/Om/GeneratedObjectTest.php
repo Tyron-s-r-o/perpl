@@ -1067,15 +1067,8 @@ EOF;
         $author = new Author();
         $author->setFirstName('Leo');
         $author->setLastName('Tolstoi');
-        $expected = <<<EOF
-Id: null
-FirstName: Leo
-LastName: Tolstoi
-Email: null
-Age: null
-
-EOF;
-        $this->assertEquals($expected, (string)$author, 'addPrimaryString() adds a __toString() method returning the YAML representation of the object where no column is defined as primaryString');
+        $expected = '{"Id":null,"FirstName":"Leo","LastName":"Tolstoi","Email":null,"Age":null}';
+        $this->assertEquals($expected, (string)$author, 'addPrimaryString() adds a __toString() method returning the JSON representation of the object where no column is defined as primaryString');
     }
 
     /**

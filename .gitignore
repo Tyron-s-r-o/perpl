@@ -7,7 +7,6 @@ composer.phar
 autoload.php
 phpunit.xml
 .phpunit.result.cache
-pom.xml
 php-cs-fixer.phar
 
 generated-classes/
@@ -19,28 +18,26 @@ tests/Fixtures/nestedset/build/
 tests/Fixtures/schemas/build/
 
 tests/Fixtures/bookstore/build/
-tests/Fixtures/bookstore/perpl.yaml
+tests/Fixtures/bookstore/perpl.php
 
 tests/Fixtures/bookstore-packaged/
 
-tests/Fixtures/namespaced/perpl.yaml
+tests/Fixtures/namespaced/perpl.php
 
-tests/Fixtures/schemas/perpl.yaml
+tests/Fixtures/schemas/perpl.php
 
 tests/Fixtures/instance-pool/build/
-tests/Fixtures/instance-pool/perpl.yaml
+tests/Fixtures/instance-pool/perpl.php
 
 tests/Fixtures/reverse/mysql/build/
-tests/Fixtures/reverse/mysql/perpl.yaml
+tests/Fixtures/reverse/mysql/perpl.php
 
-tests/Fixtures/reverse/pgsql/build/
-tests/Fixtures/reverse/pgsql/perpl.yaml
 
 tests/Fixtures/migration/build/
-tests/Fixtures/migration/perpl.yaml
+tests/Fixtures/migration/perpl.php
 
 tests/Fixtures/quoting/build/
-tests/Fixtures/quoting/perpl.yaml
+tests/Fixtures/quoting/perpl.php
 
 
 tests/Fixtures/fixtures_built

@@ -782,15 +782,14 @@ DROP INDEX `babar` ON `foo`;
         $schema = '
 <database name="test1" identifierQuoting="true">
   <table name="foo">
-    <behavior name="AutoAddPk"/>
     <column name="name" type="VARCHAR"/>
     <column name="subid" type="INTEGER"/>
+    <column name="id" type="INTEGER" required="true" primaryKey="true" autoIncrement="true"/>
   </table>
   <table name="bar">
-    <behavior name="AutoAddPk"/>
-
     <column name="name" type="VARCHAR"/>
     <column name="subid" type="INTEGER"/>
+    <column name="id" type="INTEGER" required="true" primaryKey="true" autoIncrement="true"/>
 
     <foreign-key foreignTable="foo">
       <reference local="id" foreign="id"/>

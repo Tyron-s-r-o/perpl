@@ -70,7 +70,7 @@ interface MutableActiveRecordInterface
      * TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.
      * The default key type is the column's TableMap::$defaultKeyType.
      *
-     * @param mixed $parser A AbstractParser instance, or a format name ('XML', 'YAML', 'JSON', 'CSV')
+     * @param mixed $parser A AbstractParser instance, or a format name ('JSON')
      * @param string $data The source data to import from
      * @param string $keyType The type of keys the array uses.
      *

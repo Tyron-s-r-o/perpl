@@ -13,7 +13,7 @@ use function defined;
 use function is_numeric;
 use function is_string;
 use function sprintf;
-use function strpos;
+use function str_contains;
 
 /**
  * PDO extension that implements ConnectionInterface and builds StatementInterface statements.
@@ -113,7 +113,7 @@ class PdoConnection implements ConnectionInterface
     #[\Override]
     public function setAttribute($attribute, $value): bool
     {
-        if (is_string($attribute) && strpos($attribute, '::') === false) {
+        if (is_string($attribute) && !str_contains($attribute, '::')) {
             $attribute = '\PDO::' . $attribute;
             if (!defined($attribute)) {
                 throw new InvalidArgumentException(sprintf('Invalid PDO option/attribute name specified: `%s`', $attribute));

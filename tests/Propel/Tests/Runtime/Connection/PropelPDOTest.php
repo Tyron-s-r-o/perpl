@@ -16,7 +16,6 @@ use PDOException;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Connection\ConnectionWrapper;
 use Propel\Runtime\Connection\Exception\RollbackException;
-use Propel\Runtime\Connection\PropelPDO;
 use Propel\Tests\Bookstore\Author;
 use Propel\Tests\Bookstore\AuthorQuery;
 use Propel\Tests\Bookstore\BookQuery;
@@ -46,9 +45,9 @@ class PropelPDOTest extends BookstoreTestBase
     public function testSetAttribute()
     {
         $con = $this->con;
-        $this->assertFalse($con->getAttribute(PropelPDO::PROPEL_ATTR_CACHE_PREPARES));
-        $con->setAttribute(PropelPDO::PROPEL_ATTR_CACHE_PREPARES, true);
-        $this->assertTrue($con->getAttribute(PropelPDO::PROPEL_ATTR_CACHE_PREPARES));
+        $this->assertFalse($con->getAttribute(ConnectionWrapper::PROPEL_ATTR_CACHE_PREPARES));
+        $con->setAttribute(ConnectionWrapper::PROPEL_ATTR_CACHE_PREPARES, true);
+        $this->assertTrue($con->getAttribute(ConnectionWrapper::PROPEL_ATTR_CACHE_PREPARES));
 
         $con->setAttribute(PDO::ATTR_CASE, PDO::CASE_LOWER);
         $this->assertEquals(PDO::CASE_LOWER, $con->getAttribute(PDO::ATTR_CASE));

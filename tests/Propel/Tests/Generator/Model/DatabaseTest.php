@@ -16,7 +16,6 @@ use Propel\Generator\Model\Database;
 use Propel\Generator\Model\Schema;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Platform\MysqlPlatform;
-use Propel\Generator\Platform\PgsqlPlatform;
 use Propel\Generator\Util\VfsTrait;
 
 /**
@@ -36,7 +35,7 @@ class DatabaseTest extends ModelTestCase
         $database = new Database('bookstore');
 
         $this->assertSame('bookstore', $database->getName());
-        $this->assertSame('YAML', $database->getDefaultStringFormat());
+        $this->assertSame('JSON', $database->getDefaultStringFormat());
         $this->assertSame('native', $database->getDefaultIdMethod());
         $this->assertSame('underscore', $database->getDefaultPhpNamingMethod());
         $this->assertEmpty($database->getTablePrefix());
@@ -67,13 +66,13 @@ class DatabaseTest extends ModelTestCase
             'defaultPhpNamingMethod' => 'underscore',
             'heavyIndexing' => 'true',
             'tablePrefix' => 'acme_',
-            'defaultStringFormat' => 'XML',
+            'defaultStringFormat' => 'JSON',
         ]);
 
         $this->assertSame('bookstore', $database->getName());
         $this->assertSame('CustomBaseObject', $database->getBaseClass());
         $this->assertSame('CustomBaseQueryObject', $database->getBaseQueryClass());
-        $this->assertSame('XML', $database->getDefaultStringFormat());
+        $this->assertSame('JSON', $database->getDefaultStringFormat());
         $this->assertSame('native', $database->getDefaultIdMethod());
         $this->assertSame('underscore', $database->getDefaultPhpNamingMethod());
         $this->assertSame('acme_', $database->getTablePrefix());
@@ -314,16 +313,8 @@ class DatabaseTest extends ModelTestCase
     public static function provideBehaviors()
     {
         return [
-            ['aggregate_column', 'AggregateColumn'],
-            ['auto_add_pk', 'AutoAddPk'],
-            ['concrete_inheritance', 'ConcreteInheritance'],
-            ['delegate', 'Delegate'],
-            ['nested_set', 'NestedSet'],
-            ['sluggable', 'Sluggable'],
-            ['sortable', 'Sortable'],
+            ['archivable', 'Archivable'],
             ['timestampable', 'Timestampable'],
-            ['validate', 'Validate'],
-            ['versionable', 'Versionable'],
         ];
     }
 
@@ -435,10 +426,7 @@ class DatabaseTest extends ModelTestCase
     public static function provideSupportedFormats()
     {
         return [
-            ['xml'],
-            ['yaml'],
             ['json'],
-            ['csv'],
         ];
     }
 
@@ -518,7 +506,7 @@ class DatabaseTest extends ModelTestCase
     public function testAddTableWithSameNameOnDifferentSchema()
     {
         $db = new Database();
-        $db->setPlatform(new PgsqlPlatform());
+        $db->setPlatform(new MysqlPlatform());
 
         $t1 = new Table('t1');
         $db->addTable($t1);
@@ -535,22 +523,28 @@ class DatabaseTest extends ModelTestCase
      */
     public function testAutoNamespaceToDatabaseSchemaName()
     {
-        $yamlConf = <<<EOF
-propel:
-  database:
-      connections:
-          mysource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=mydb
-              user: root
-              password:
-  generator:
-      schema:
-          autoNamespace: true
-EOF;
+        $conf = [
+            'propel' => [
+                'database' => [
+                    'connections' => [
+                        'mysource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=mydb',
+                            'user' => 'root',
+                            'password' => null,
+                        ],
+                    ],
+                ],
+                'generator' => [
+                    'schema' => [
+                        'autoNamespace' => true,
+                    ],
+                ],
+            ],
+        ];
 
-        $configFile = $this->newFile('propel.yml', $yamlConf);
+        $configFile = $this->newFile('propel.php', '<?php return ' . var_export($conf, true) . ';');
 
         $schema = 'TestSchema';
         $config = new GeneratorConfig($configFile->url());

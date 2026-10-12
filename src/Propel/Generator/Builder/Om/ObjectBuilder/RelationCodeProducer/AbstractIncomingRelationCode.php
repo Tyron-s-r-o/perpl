@@ -9,7 +9,6 @@ use Propel\Generator\Builder\Om\ObjectBuilder;
 use Propel\Generator\Builder\Util\EntityObjectClassNames;
 use Propel\Generator\Model\ForeignKey;
 use Propel\Runtime\Collection\ObjectCollection;
-use function lcfirst;
 
 /**
  * An incoming relation ("refFK"), to a single row (incoming one-to-one)
@@ -136,20 +135,7 @@ abstract class AbstractIncomingRelationCode extends AbstractRelationCodeProducer
      */
     public function addScheduledForDeletionAttribute(string &$script): void
     {
+        // objects scheduled for deletion are kept in one property for all relations, see ObjectBuilder::addIncomingRelationStateAttributes()
         $this->declareClass(ObjectCollection::class);
-
-        $refFK = $this->relation;
-        $classNameFq = $this->targetTableNames->useObjectStubClassName(false);
-
-        $relationIdentifier = $this->getRefFKPhpNameAffix($refFK, true);
-        $relationIdentifierLc = lcfirst($relationIdentifier);
-
-        $script .= "
-    /**
-     * Items of $relationIdentifier relation marked for deletion.
-     *
-     * @var \Propel\Runtime\Collection\ObjectCollection<{$classNameFq}>|null
-     */
-    protected ObjectCollection|null \${$relationIdentifierLc}ScheduledForDeletion = null;\n";
     }
 }

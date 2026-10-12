@@ -18,7 +18,7 @@ use function defined;
 use function in_array;
 use function is_string;
 use function sprintf;
-use function strpos;
+use function str_contains;
 
 /**
  * Wraps a Connection class, providing nested transactions, statement cache, and logging.
@@ -351,12 +351,10 @@ class ConnectionWrapper implements ConnectionInterface, LoggerAwareInterface
     #[\Override]
     public function getAttribute(int $attribute)
     {
-        switch ($attribute) {
-            case self::PROPEL_ATTR_CACHE_PREPARES:
-                return $this->isCachePreparedStatements;
-            default:
-                return $this->connection->getAttribute($attribute);
-        }
+        return match ($attribute) {
+            self::PROPEL_ATTR_CACHE_PREPARES => $this->isCachePreparedStatements,
+            default => $this->connection->getAttribute($attribute),
+        };
     }
 
     /**
@@ -373,7 +371,7 @@ class ConnectionWrapper implements ConnectionInterface, LoggerAwareInterface
     public function setAttribute($attribute, $value): bool
     {
         if (is_string($attribute)) {
-            if (strpos($attribute, '::') === false) {
+            if (!str_contains($attribute, '::')) {
                 if (defined('\PDO::' . $attribute)) {
                     $attribute = '\PDO::' . $attribute;
                 } else {
@@ -405,7 +403,7 @@ class ConnectionWrapper implements ConnectionInterface, LoggerAwareInterface
      *
      * Overrides PDO::prepare() in order to:
      *  - Add logging and query counting if logging is true.
-     *  - Add query caching support if the PropelPDO::PROPEL_ATTR_CACHE_PREPARES was set to true.
+     *  - Add query caching support if the ConnectionWrapper::PROPEL_ATTR_CACHE_PREPARES was set to true.
      *
      * @param string $statement This must be a valid SQL statement for the target database server.
      * @param array $driverOptions One $array or more key => value pairs to set attribute values
@@ -468,7 +466,7 @@ class ConnectionWrapper implements ConnectionInterface, LoggerAwareInterface
     {
         $statementWrapper = $this->createStatementWrapper($statement);
 
-        return $statementWrapper->query(...$args);
+        return $statementWrapper->query();
     }
 
     /**
@@ -487,9 +485,7 @@ class ConnectionWrapper implements ConnectionInterface, LoggerAwareInterface
      */
     public function callUserFunctionWithLogging(callable $callback, ?array $args, string $sqlForLog)
     {
-        if ($args === null) {
-            $args = [];
-        }
+        $args ??= [];
         $pdoException = null;
         $return = null;
 

@@ -47,9 +47,6 @@ class TestCase extends PHPUnitTestCase
         if ($target === 'sqlite' && $source === 'mysql') {
             return preg_replace('/`([^`]*)`/', '[$1]', $sql);
         }
-        if ($target === 'pgsql' && $source === 'mysql') {
-            return preg_replace('/`([^`]*)`/', '"$1"', $sql);
-        }
         if ($target !== 'mysql' && $source === 'mysql') {
             return str_replace('`', '', $sql);
         }
@@ -72,14 +69,6 @@ class TestCase extends PHPUnitTestCase
     /**
      * @return bool
      */
-    protected static function runningOnPostgreSQL()
-    {
-        return static::isDb('pgsql');
-    }
-
-    /**
-     * @return bool
-     */
     protected static function runningOnMySQL()
     {
         return static::isDb('mysql');
@@ -91,22 +80,6 @@ class TestCase extends PHPUnitTestCase
     protected static function runningOnSQLite()
     {
         return static::isDb('sqlite');
-    }
-
-    /**
-     * @return bool
-     */
-    protected static function runningOnOracle()
-    {
-        return static::isDb('oracle');
-    }
-
-    /**
-     * @return bool
-     */
-    protected static function runningOnMSSQL()
-    {
-        return static::isDb('mssql');
     }
 
     /**

@@ -9,7 +9,6 @@
 namespace Propel\Tests;
 
 use Exception;
-use Propel\Runtime\Adapter\PgsqlAdapter;
 use Propel\Runtime\Adapter\SqliteAdapter;
 use Propel\Runtime\Propel;
 use Propel\Tests\Bookstore\Author;
@@ -102,20 +101,10 @@ class CharacterEncodingTest extends BookstoreTestBase
         $authorNameWindows1251 = iconv('utf-8', 'windows-1251', $a->getLastName());
         $a->setLastName($authorNameWindows1251);
 
-        // Different databases seem to handle invalid data differently (no surprise, I guess...)
-        if ($db instanceof PgsqlAdapter) {
-            try {
-                $a->save();
-                $this->fail('Expected an exception when saving non-UTF8 data to database.');
-            } catch (Exception $x) {
-                print $x;
-            }
-        } else {
-            // No exception is thrown by MySQL ... (others need to be tested still)
-            $a->save();
-            $a->reload();
+        // No exception is thrown by MySQL
+        $a->save();
+        $a->reload();
 
-            $this->assertEquals('', $a->getLastName(), 'Expected last_name to be empty (after inserting invalid charset data)');
-        }
+        $this->assertEquals('', $a->getLastName(), 'Expected last_name to be empty (after inserting invalid charset data)');
     }
 }

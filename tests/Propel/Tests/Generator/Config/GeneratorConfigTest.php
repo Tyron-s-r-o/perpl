@@ -21,9 +21,8 @@ use Propel\Generator\Exception\ClassNotFoundException;
 use Propel\Generator\Exception\InvalidArgumentException;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Platform\MysqlPlatform;
-use Propel\Generator\Platform\PgsqlPlatform;
 use Propel\Generator\Platform\SqlitePlatform;
-use Propel\Generator\Reverse\PgsqlSchemaParser;
+use Propel\Generator\Reverse\MysqlSchemaParser;
 use Propel\Generator\Reverse\SqliteSchemaParser;
 use Propel\Generator\Util\BehaviorLocator;
 use Propel\Runtime\Connection\ConnectionWrapper;
@@ -117,9 +116,9 @@ class GeneratorConfigTest extends TestCase
      */
     public function testGetConfiguredPlatform()
     {
-        $this->setConfig(['generator' => ['platformClass' => PgsqlPlatform::class]]);
+        $this->setConfig(['generator' => ['platformClass' => SqlitePlatform::class]]);
         $actual = $this->generatorConfig->getConfiguredPlatform();
-        $this->assertInstanceOf(PgsqlPlatform::class, $actual);
+        $this->assertInstanceOf(SqlitePlatform::class, $actual);
     }
 
     /**
@@ -156,7 +155,7 @@ Update configuration or choose one of [`mysource`, `yoursource`]');
         $this->setConfig([
                 'migrations' => [
                     'tableName' => 'propel_migration',
-                    'parserClass' => PgsqlSchemaParser::class,
+                    'parserClass' => MysqlSchemaParser::class,
                 ]
             ]);
         $stubCon = $this->getMockBuilder(ConnectionWrapper::class)
@@ -164,7 +163,7 @@ Update configuration or choose one of [`mysource`, `yoursource`]');
 
         $actual = $this->generatorConfig->getConfiguredSchemaParser($stubCon);
 
-        $this->assertInstanceOf(PgsqlSchemaParser::class, $actual);
+        $this->assertInstanceOf(MysqlSchemaParser::class, $actual);
     }
 
     /**

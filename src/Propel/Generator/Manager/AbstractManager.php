@@ -16,11 +16,8 @@ use Propel\Generator\Exception\SchemaException;
 use Propel\Generator\Model\Database;
 use Propel\Generator\Model\Schema;
 use Propel\Generator\Platform\PlatformInterface;
-use RuntimeException;
 use Symfony\Component\Finder\SplFileInfo;
-use XSLTProcessor;
 use function array_shift;
-use function class_exists;
 use function count;
 use function dirname;
 use function file;
@@ -40,8 +37,6 @@ use const E_WARNING;
 /**
  * An abstract base Propel manager to perform work related to the XML schema
  * file.
- *
- * Requires PHP XSL extension for XSLT transformations.
  */
 abstract class AbstractManager
 {
@@ -87,13 +82,6 @@ abstract class AbstractManager
      * @var string
      */
     protected $xsd;
-
-    /**
-     * XSL file to use to normalize (or otherwise transform) schema before validation.
-     *
-     * @var mixed
-     */
-    protected $xsl;
 
     /**
      * Gets list of all used xml schemas
@@ -268,19 +256,6 @@ abstract class AbstractManager
     }
 
     /**
-     * Sets the normalization XSLT to use to transform datamodel schema.xml
-     * file(s) before validation and parsing.
-     *
-     * @param mixed $xsl
-     *
-     * @return void
-     */
-    public function setXsl($xsl): void
-    {
-        $this->xsl = $xsl;
-    }
-
-    /**
      * Sets the current target database encoding.
      *
      * @param string $encoding Target database encoding
@@ -372,12 +347,6 @@ abstract class AbstractManager
 
         $this->includeExternalSchemas($dom, $schemaFile->getPath());
 
-        // normalize/transform XML document using XSLT
-        if ($this->getGeneratorConfig()->getConfigProperty('generator.schema.transform') && $this->xsl) {
-            $this->log("Transforming  $dmFilename  using stylesheet " . $this->xsl->getPath());
-            $this->applyXlsTransformation($dom);
-        }
-
         // validate the XML document using XSD schema
         if ($this->validate && $this->xsd) {
             $this->log("  Validating XML using schema $this->xsd");
@@ -416,35 +385,6 @@ abstract class AbstractManager
             $dom->load($schemaFileName);
         } finally {
             restore_error_handler();
-        }
-
-        return $dom;
-    }
-
-    /**
-     * @param \DOMDocument $dom
-     *
-     * @throws \RuntimeException
-     *
-     * @return \DOMDocument
-     */
-    protected function applyXlsTransformation(DOMDocument $dom): DOMDocument
-    {
-        if (!class_exists('\XSLTProcessor')) {
-            $this->log('Skipping XLST transformation. Make sure PHP has been compiled/configured to support XSLT.');
-
-            return $dom;
-        }
-
-        // normalize the document using normalizer stylesheet
-        $xslDom = new DOMDocument('1.0', 'UTF-8');
-        $xslDom->load($this->xsl->getAbsolutePath());
-        $xsl = new XSLTProcessor();
-        $xsl->importStylesheet($xslDom);
-        $dom = $xsl->transformToDoc($dom);
-
-        if ($dom === false) {
-            throw new RuntimeException('XSLTProcessor transformation to a DOMDocument failed.');
         }
 
         return $dom;

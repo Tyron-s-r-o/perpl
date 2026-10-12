@@ -201,7 +201,7 @@ class MigrationManager extends AbstractManager
         foreach ($connections as $name => $params) {
             try {
                 $migrationData += $this->getMigrationData($name);
-            } catch (PDOException $e) {
+            } catch (PDOException) {
                 $this->createMigrationTable($name);
                 $migrationData = [];
             }
@@ -529,7 +529,7 @@ class MigrationManager extends AbstractManager
             'commentString' => addcslashes($comment, ','),
             'suffix' => $suffix,
             'timeInWords' => date('Y-m-d H:i:s', $timestamp),
-            'migrationAuthor' => ($author = $this->getUser()) ? 'by ' . $author : '',
+            'migrationAuthor' => ($author = static::getUser()) ? 'by ' . $author : '',
             'migrationClassName' => $this->resolveMigrationNameByTimestamp($timestamp, $suffix),
             'migrationsUp' => $migrationsUp,
             'migrationsDown' => $migrationsDown,
@@ -733,7 +733,7 @@ class MigrationManager extends AbstractManager
             $connection->query($sql);
 
             return true;
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return false;
         }
     }

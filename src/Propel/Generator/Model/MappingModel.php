@@ -85,11 +85,8 @@ abstract class MappingModel implements MappingModelInterface
     public function getAttribute(string $name, $default = null)
     {
         $name = strtolower($name);
-        if (isset($this->attributes[$name])) {
-            return $this->attributes[$name];
-        }
 
-        return $default;
+        return $this->attributes[$name] ?? $default;
     }
 
     /**
@@ -186,11 +183,7 @@ abstract class MappingModel implements MappingModelInterface
      */
     public function getVendorInfoForType(string $type): VendorInfo
     {
-        if (isset($this->vendorInfos[$type])) {
-            return $this->vendorInfos[$type];
-        }
-
-        return new VendorInfo($type);
+        return $this->vendorInfos[$type] ?? new VendorInfo($type);
     }
 
     /**

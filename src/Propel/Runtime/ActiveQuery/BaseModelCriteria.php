@@ -19,7 +19,7 @@ use function class_exists;
 use function explode;
 use function is_array;
 use function is_string;
-use function strpos;
+use function str_starts_with;
 use function substr;
 
 /**
@@ -197,7 +197,7 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
 
             return $this;
         }
-        if (strpos($modelName, '\\') === 0) {
+        if (str_starts_with($modelName, '\\')) {
             /** @var string $modelName */
             $modelName = substr($modelName, 1);
         }

@@ -13,7 +13,6 @@ use function memory_get_peak_usage;
 use function memory_get_usage;
 use function microtime;
 use function number_format;
-use function pow;
 use function round;
 use function str_pad;
 use const STR_PAD_LEFT;
@@ -224,7 +223,7 @@ class Profiler
     public function getProfile(): string
     {
         $endSnapshot = self::getSnapshot();
-        $startSnapshot = ($this->snapshot === null) ? $endSnapshot : $this->snapshot;
+        $startSnapshot = $this->snapshot ?? $endSnapshot;
         $this->snapshot = null;
 
         return $this->getProfileBetween($startSnapshot, $endSnapshot);
@@ -358,7 +357,7 @@ class Profiler
         }
 
         $significantDecimals = (int)floor($significantFigures - log10(abs($number)));
-        $magnitude = pow(10, $significantDecimals);
+        $magnitude = 10 ** $significantDecimals;
         $shifted = round($number * $magnitude);
 
         return number_format($shifted / $magnitude, $significantDecimals);

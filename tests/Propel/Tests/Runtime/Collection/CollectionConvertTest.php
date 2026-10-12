@@ -12,7 +12,6 @@ use Propel\Runtime\Collection\ObjectCollection;
 use Propel\Tests\Bookstore\Book;
 use Propel\Tests\Bookstore\Publisher;
 use Propel\Tests\TestCaseFixtures;
-use Symfony\Component\Yaml\Yaml;
 
 /**
  * Test class for Collection.
@@ -50,111 +49,6 @@ class CollectionConvertTest extends TestCaseFixtures
         $this->coll[] = $book2;
     }
 
-    public static function toXmlDataProvider()
-    {
-        $expected = <<<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<Books>
-  <Book>
-    <Id>9012</Id>
-    <Title><![CDATA[Don Juan]]></Title>
-    <ISBN><![CDATA[0140422161]]></ISBN>
-    <Price>12.99</Price>
-    <PublisherId>1234</PublisherId>
-    <AuthorId>5678</AuthorId>
-  </Book>
-  <Book>
-    <Id>58</Id>
-    <Title><![CDATA[Harry Potter and the Order of the Phoenix]]></Title>
-    <ISBN><![CDATA[043935806X]]></ISBN>
-    <Price>10.99</Price>
-    <PublisherId></PublisherId>
-    <AuthorId></AuthorId>
-  </Book>
-</Books>
-
-EOF;
-
-        return [[$expected]];
-    }
-
-    /**
-     * @return void
-     */
-    #[\PHPUnit\Framework\Attributes\DataProvider('toXmlDataProvider')]
-    public function testToXML($expected)
-    {
-        $this->assertEquals($expected, $this->coll->toXML());
-    }
-
-    /**
-     * @return void
-     */
-    #[\PHPUnit\Framework\Attributes\DataProvider('toXmlDataProvider')]
-    public function testFromXML($expected)
-    {
-        $coll = new ObjectCollection();
-        $coll->setModel('\Propel\Tests\Bookstore\Book');
-        $coll->fromXML($expected);
-        // fix modified columns order
-        foreach ($coll as $book) {
-            $book->resetModified();
-        }
-
-        $this->assertEquals($this->coll->getData(), $coll->getData());
-    }
-
-    public static function toYamlDataProvider()
-    {
-        $expected = <<<EOF
-Books:
-    -
-        Id: 9012
-        Title: 'Don Juan'
-        ISBN: '0140422161'
-        Price: 12.99
-        PublisherId: 1234
-        AuthorId: 5678
-    -
-        Id: 58
-        Title: 'Harry Potter and the Order of the Phoenix'
-        ISBN: 043935806X
-        Price: 10.99
-        PublisherId: null
-        AuthorId: null
-
-EOF;
-        $expected = Yaml::dump(Yaml::parse($expected), Yaml::DUMP_OBJECT_AS_MAP); // fix incosistent YAML format across versions
-
-        return [[$expected]];
-    }
-
-    /**
-     * @return void
-     */
-    #[\PHPUnit\Framework\Attributes\DataProvider('toYamlDataProvider')]
-    public function testToYAML($expected)
-    {
-        $this->assertEquals($expected, $this->coll->toYAML());
-    }
-
-    /**
-     * @return void
-     */
-    #[\PHPUnit\Framework\Attributes\DataProvider('toYamlDataProvider')]
-    public function testFromYAML($expected)
-    {
-        $coll = new ObjectCollection();
-        $coll->setModel('\Propel\Tests\Bookstore\Book');
-        $coll->fromYAML($expected);
-        // fix modified columns order
-        foreach ($coll as $book) {
-            $book->resetModified();
-        }
-
-        $this->assertEquals($this->coll->getData(), $coll->getData());
-    }
-
     public static function toJsonDataProvider()
     {
         $expected = <<<EOF
@@ -190,45 +84,12 @@ EOF;
         $this->assertEquals($this->coll->getData(), $coll->getData());
     }
 
-    public static function toCsvDataProvider()
-    {
-        $expected = "Id,Title,ISBN,Price,PublisherId,AuthorId\r\n9012,Don Juan,0140422161,12.99,1234,5678\r\n58,Harry Potter and the Order of the Phoenix,043935806X,10.99,N;,N;\r\n";
-
-        return [[$expected]];
-    }
-
-    /**
-     * @return void
-     */
-    #[\PHPUnit\Framework\Attributes\DataProvider('toCsvDataProvider')]
-    public function testToCSV($expected)
-    {
-        $this->assertEquals($expected, $this->coll->toCSV());
-    }
-
-    /**
-     * @return void
-     */
-    #[\PHPUnit\Framework\Attributes\DataProvider('toCsvDataProvider')]
-    public function testfromCSV($expected)
-    {
-        $coll = new ObjectCollection();
-        $coll->setModel('\Propel\Tests\Bookstore\Book');
-        $coll->fromCSV($expected);
-        // fix modified columns order
-        foreach ($coll as $book) {
-            $book->resetModified();
-        }
-
-        $this->assertEquals($this->coll->getData(), $coll->getData());
-    }
-
     /**
      * @return void
      */
     public function testToStringUsesDefaultStringFormat()
     {
-        $this->assertEquals($this->coll->toYAML(), (string)$this->coll, 'Collection::__toString() uses the YAML representation by default');
+        $this->assertEquals($this->coll->toJSON(), (string)$this->coll, 'Collection::__toString() uses the JSON representation by default');
     }
 
     /**
@@ -242,16 +103,17 @@ EOF;
         $publisher->setId(12345);
         $publisher->setName('Penguinoo');
         $coll[] = $publisher;
-        $expected = <<<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<Publishers>
-  <Publisher>
-    <Id>12345</Id>
-    <Name><![CDATA[Penguinoo]]></Name>
-  </Publisher>
-</Publishers>
-
-EOF;
+        $expected = '{"Publishers":[{"Id":12345,"Name":"Penguinoo"}]}';
         $this->assertEquals($expected, (string)$coll);
+    }
+
+    /**
+     * @return void
+     */
+    public function testRemovedFormatsThrowException()
+    {
+        $this->expectException(\Propel\Runtime\Exception\FileNotFoundException::class);
+
+        $this->coll->toXML();
     }
 }

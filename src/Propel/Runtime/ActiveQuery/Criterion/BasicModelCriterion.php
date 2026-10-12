@@ -6,8 +6,8 @@ namespace Propel\Runtime\ActiveQuery\Criterion;
 
 use Propel\Runtime\ActiveQuery\Criterion\Exception\InvalidClauseException;
 use function count;
+use function str_contains;
 use function str_replace;
-use function strpos;
 
 /**
  * Specialized ModelCriterion used for traditional expressions,
@@ -29,7 +29,7 @@ class BasicModelCriterion extends AbstractModelCriterion
     protected function appendPsForUniqueClauseTo(string &$sb, array &$params): void
     {
         if ($this->value !== null) {
-            if (strpos($this->clause, '?') === false) {
+            if (!str_contains($this->clause, '?')) {
                 throw new InvalidClauseException('A clause must contain a question mark in order to be bound to a value');
             }
             $params[] = [

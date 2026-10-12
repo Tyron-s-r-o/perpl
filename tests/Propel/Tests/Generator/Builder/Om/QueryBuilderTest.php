@@ -9,7 +9,6 @@
 namespace Propel\Tests\Generator\Builder\Om;
 
 use Propel\Runtime\ActiveQuery\Criteria;
-use Propel\Runtime\ActiveQuery\Criterion\ExistsCriterion;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\ActiveQuery\ModelJoin;
 use Propel\Runtime\Exception\PropelException;
@@ -1092,36 +1091,6 @@ class QueryBuilderTest extends BookstoreTestBase
     /**
      * @return void
      */
-    public function testUseFkQueryWith()
-    {
-        $q = BookQuery::create()
-            ->withAuthorQuery(
-                function (AuthorQuery $q) {
-                    return $q->filterByFirstName('Leo');
-                }
-            );
-        $q1 = BookQuery::create()
-            ->useAuthorQuery()
-            ->filterByFirstName('Leo')
-            ->endUse();
-        $this->assertTrue($q->equals($q1), 'useFkQuery() translates to a condition on a left join on non-required columns');
-
-        $q = BookSummaryQuery::create()
-            ->withSummarizedBookQuery(
-                function (BookQuery $q) {
-                    return $q->filterByTitle('War and Peace');
-                }
-            );
-        $q1 = BookSummaryQuery::create()
-            ->useSummarizedBookQuery()
-            ->filterByTitle('War and Peace')
-            ->endUse();
-        $this->assertEquals($q1, $q, 'useFkQuery() translates to a condition on an inner join on required columns');
-    }
-
-    /**
-     * @return void
-     */
     public function testUseFkQueryJoinType()
     {
         $q = BookQuery::create()
@@ -1287,58 +1256,6 @@ class QueryBuilderTest extends BookstoreTestBase
             ->find($con);
         $q2 = $con->getLastExecutedQuery();
         $this->assertEquals($q1, $q2, 'with() can be used after a call to useFkQuery() with no alias');
-    }
-
-    /**
-     * @return void
-     */
-    public function testUseRelationExistsQuery()
-    {
-        $expected = BookQuery::create()
-        ->useExistsQuery('Author')
-        ->filterByFirstName('Leo')
-        ->endUse();
-        $actual = BookQuery::create()
-        ->useAuthorExistsQuery()
-        ->filterByFirstName('Leo')
-        ->endUse();
-
-        $this->assertEquals($expected, $actual, 'useExistsQuery() is available and calls correct parent method');
-    }
-
-    /**
-     * @return void
-     */
-    public function testUseRelationNotExistsQuery()
-    {
-        $expected = BookQuery::create()
-        ->useExistsQuery('Author', null, null, ExistsCriterion::TYPE_NOT_EXISTS)
-        ->filterByFirstName('Leo')
-        ->endUse();
-        $actual = BookQuery::create()
-        ->useAuthorNotExistsQuery()
-        ->filterByFirstName('Leo')
-        ->endUse();
-
-        $this->assertEquals($expected, $actual, 'useNotExistsQuery() is available and calls correct parent method');
-    }
-
-    /**
-     * @return void
-     */
-    public function testUseRelationExistsQueryWithCustomQueryClass()
-    {
-        $query = BookQuery::create()->useAuthorExistsQuery(null, BookClubListQuery::class, false);
-        $this->assertInstanceOf(BookClubListQuery::class, $query, 'useExistsQuery() passes on given query class');
-    }
-
-    /**
-     * @return void
-     */
-    public function testUseRelationNotExistsQueryWithCustomQueryClass()
-    {
-        $query = BookQuery::create()->useAuthorNotExistsQuery(null, BookClubListQuery::class);
-        $this->assertInstanceOf(BookClubListQuery::class, $query, 'useNotExistsQuery() passes on given query class');
     }
 
     /**

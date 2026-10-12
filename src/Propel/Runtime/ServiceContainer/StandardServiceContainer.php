@@ -23,7 +23,6 @@ use Propel\Runtime\Map\DatabaseMap;
 use Propel\Runtime\Util\Profiler;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use function get_class;
 use function is_int;
 use function sprintf;
 use const LOG_USER;
@@ -143,9 +142,7 @@ class StandardServiceContainer implements ServiceContainerInterface
     #[\Override]
     public function getAdapterClass(?string $name = null): string
     {
-        if ($name === null) {
-            $name = $this->getDefaultDatasource();
-        }
+        $name ??= $this->getDefaultDatasource();
 
         return $this->adapterClasses[$name];
     }
@@ -193,9 +190,7 @@ class StandardServiceContainer implements ServiceContainerInterface
     #[\Override]
     public function getAdapter(?string $name = null): SqlAdapterInterface
     {
-        if ($name === null) {
-            $name = $this->getDefaultDatasource();
-        }
+        $name ??= $this->getDefaultDatasource();
         if (!isset($this->adapters[$name])) {
             if (!isset($this->adapterClasses[$name])) {
                 throw new AdapterException(sprintf('No adapter class defined for datasource "%s"', $name));
@@ -218,7 +213,7 @@ class StandardServiceContainer implements ServiceContainerInterface
     public function setAdapter(string $name, SqlAdapterInterface $adapter): void
     {
         $this->adapters[$name] = $adapter;
-        $this->adapterClasses[$name] = get_class($adapter);
+        $this->adapterClasses[$name] = $adapter::class;
     }
 
     /**
@@ -268,9 +263,7 @@ class StandardServiceContainer implements ServiceContainerInterface
     #[\Override]
     public function initDatabaseMaps(array $databaseNameToTableMapClassNames = []): void
     {
-        if ($this->databaseMaps === null) {
-            $this->databaseMaps = [];
-        }
+        $this->databaseMaps ??= [];
 
         foreach ($databaseNameToTableMapClassNames as $databaseName => $tableMapClassNames) {
             $databaseMap = $this->getDatabaseMap($databaseName);
@@ -287,9 +280,7 @@ class StandardServiceContainer implements ServiceContainerInterface
      */
     public function initDatabaseMapFromDumps(array $databaseNameToTableMapDumps = []): void
     {
-        if ($this->databaseMaps === null) {
-            $this->databaseMaps = [];
-        }
+        $this->databaseMaps ??= [];
 
         foreach ($databaseNameToTableMapDumps as $databaseName => $tableMapDumps) {
             $databaseMap = $this->getDatabaseMap($databaseName);
@@ -434,9 +425,7 @@ class StandardServiceContainer implements ServiceContainerInterface
     #[\Override]
     public function getConnection(?string $name = null, string $mode = ServiceContainerInterface::CONNECTION_WRITE): ConnectionInterface
     {
-        if ($name === null) {
-            $name = $this->getDefaultDatasource();
-        }
+        $name ??= $this->getDefaultDatasource();
 
         if ($mode === ServiceContainerInterface::CONNECTION_READ) {
             return $this->getReadConnection($name);
@@ -574,13 +563,9 @@ class StandardServiceContainer implements ServiceContainerInterface
     #[\Override]
     public function getLogger(?string $name = null): LoggerInterface
     {
-        if ($name === null) {
-            $name = 'defaultLogger';
-        }
+        $name ??= 'defaultLogger';
 
-        if (!isset($this->loggers[$name])) {
-            $this->loggers[$name] = $this->buildLogger($name);
-        }
+        $this->loggers[$name] ??= $this->buildLogger($name);
 
         return $this->loggers[$name];
     }
@@ -611,39 +596,29 @@ class StandardServiceContainer implements ServiceContainerInterface
 
         $logger = new Logger($name);
         $configuration = $this->loggerConfigurations[$name];
-        switch ($configuration['type']) {
-            case 'stream':
-                $handler = new StreamHandler(
-                    $configuration['path'],
-                    $configuration['level'] ?? 500,
-                    $configuration['bubble'] ?? true,
-                );
-
-                break;
-            case 'rotating_file':
-                $handler = new RotatingFileHandler(
-                    $configuration['path'],
-                    $configuration['max_files'] ?? 0,
-                    $configuration['level'] ?? 100,
-                    $configuration['bubble'] ?? true,
-                );
-
-                break;
-            case 'syslog':
-                $handler = new SyslogHandler(
-                    $configuration['ident'],
-                    $configuration['facility'] ?? LOG_USER,
-                    $configuration['level'] ?? 100,
-                    $configuration['bubble'] ?? true,
-                );
-
-                break;
-            default:
-                throw new UnexpectedValueException(sprintf(
-                    'Handler type `%s` not supported by StandardServiceContainer. Try setting the Logger manually, or use another ServiceContainer.',
-                    $configuration['type'],
-                ));
-        }
+        $handler = match ($configuration['type']) {
+            'stream' => new StreamHandler(
+                $configuration['path'],
+                $configuration['level'] ?? 500,
+                $configuration['bubble'] ?? true,
+            ),
+            'rotating_file' => new RotatingFileHandler(
+                $configuration['path'],
+                $configuration['max_files'] ?? 0,
+                $configuration['level'] ?? 100,
+                $configuration['bubble'] ?? true,
+            ),
+            'syslog' => new SyslogHandler(
+                $configuration['ident'],
+                $configuration['facility'] ?? LOG_USER,
+                $configuration['level'] ?? 100,
+                $configuration['bubble'] ?? true,
+            ),
+            default => throw new UnexpectedValueException(sprintf(
+                'Handler type `%s` not supported by StandardServiceContainer. Try setting the Logger manually, or use another ServiceContainer.',
+                $configuration['type'],
+            )),
+        };
         $logger->pushHandler($handler);
 
         return $logger;

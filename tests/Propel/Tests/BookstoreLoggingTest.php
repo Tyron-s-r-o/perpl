@@ -139,7 +139,6 @@ class BookstoreLoggingTest extends BookstoreEmptyTestBase
 
     /**
      * @group mysql
-     * @group pgsql
      *
      * @return void
      */

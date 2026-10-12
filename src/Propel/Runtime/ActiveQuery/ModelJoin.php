@@ -10,7 +10,6 @@ use Propel\Runtime\ActiveQuery\FilterExpression\JoinCondition;
 use Propel\Runtime\Exception\LogicException;
 use Propel\Runtime\Map\RelationMap;
 use Propel\Runtime\Map\TableMap;
-use function get_class;
 
 /**
  * A ModelJoin is a Join object tied to a RelationMap object
@@ -111,7 +110,8 @@ class ModelJoin extends Join
 
         $leftTableAlias = $leftQuery->getTableNameInQuery();
         for ($i = 0; $i < $nbColumns; $i++) {
-            $rightTableAlias = $rightTableAlias ?: $rightCols[$i]->getTableName();
+            // a column mapping of a polymorphic relation compares to a value and has no right column
+            $rightTableAlias = $rightTableAlias ?: $relationMap->getRightTable()->getName();
             if ($leftValues[$i] !== null) {
                 $column = $relationMap->getType() === RelationMap::ONE_TO_MANY
                     ? new LocalColumnExpression($leftQuery, $rightTableAlias, $rightCols[$i])
@@ -297,7 +297,7 @@ class ModelJoin extends Join
     public function __toString(): string
     {
         return parent::toString()
-            . ' tableMap: ' . ($this->tableMap ? get_class($this->tableMap) : 'null')
+            . ' tableMap: ' . ($this->tableMap ? $this->tableMap::class : 'null')
             . ' relationMap: ' . $this->relationMap->getName()
             . ' previousJoin: ' . ($this->previousJoin ? '(' . $this->previousJoin . ')' : 'null')
             . ' relationAlias: ' . $this->rightTableAlias;

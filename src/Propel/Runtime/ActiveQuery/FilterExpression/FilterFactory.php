@@ -60,9 +60,7 @@ class FilterFactory
             return new FilterClauseLiteralWithColumns($query, $columnOrClause);
         }
 
-        if ($comparison === null) {
-            $comparison = Criteria::EQUAL;
-        }
+        $comparison ??= Criteria::EQUAL;
 
         return static::buildFilterCondition($query, $columnOrClause, $comparison, $value);
     }
@@ -77,29 +75,20 @@ class FilterFactory
      */
     protected static function buildFilterCondition(Criteria $query, ?AbstractColumnExpression $column, $comparison = null, $value = null): AbstractFilter
     {
-        switch ($comparison) {
-            case Criteria::IN:
-            case Criteria::NOT_IN:
-                // table.column IN (?, ?) or table.column NOT IN (?, ?)
-                // something like $c->add(BookTableMap::TITLE, array('foo', 'bar'), Criteria::IN);
-                return new InColumnFilter($query, $column, $comparison, $value);
-            case Criteria::LIKE:
-            case Criteria::NOT_LIKE:
-            case Criteria::ILIKE:
-            case Criteria::NOT_ILIKE:
-                // table.column LIKE ? or table.column NOT LIKE ?  (or ILIKE for Postgres)
-                // something like $c->add(BookTableMap::TITLE, 'foo%', Criteria::LIKE);
-                return new LikeColumnFilter($query, $column, $comparison, $value);
-            case Criteria::BINARY_NONE:
-            case Criteria::BINARY_ALL:
-                // table.column & ? = 0 (Similar to  "NOT IN")
-                // something like $c->add(BookTableMap::SOME_ARRAY_VAR, 26, Criteria::BINARY_NONE);
-                return new BinaryColumnFilter($query, $column, $comparison, $value);
-            default:
-                // simple comparison
-                // something like $c->add(BookTableMap::PRICE, 12, Criteria::GREATER_THAN);
-                return new ColumnFilter($query, $column, $comparison, $value);
-        }
+        return match ($comparison) {
+            // table.column IN (?, ?) or table.column NOT IN (?, ?)
+            // something like $c->add(BookTableMap::TITLE, array('foo', 'bar'), Criteria::IN);
+            Criteria::IN, Criteria::NOT_IN => new InColumnFilter($query, $column, $comparison, $value),
+            // table.column LIKE ? or table.column NOT LIKE ?
+            // something like $c->add(BookTableMap::TITLE, 'foo%', Criteria::LIKE);
+            Criteria::LIKE, Criteria::NOT_LIKE, Criteria::ILIKE, Criteria::NOT_ILIKE => new LikeColumnFilter($query, $column, $comparison, $value),
+            // table.column & ? = 0 (Similar to  "NOT IN")
+            // something like $c->add(BookTableMap::SOME_ARRAY_VAR, 26, Criteria::BINARY_NONE);
+            Criteria::BINARY_NONE, Criteria::BINARY_ALL => new BinaryColumnFilter($query, $column, $comparison, $value),
+            // simple comparison
+            // something like $c->add(BookTableMap::PRICE, 12, Criteria::GREATER_THAN);
+            default => new ColumnFilter($query, $column, $comparison, $value),
+        };
     }
 
     /**
@@ -116,16 +105,11 @@ class FilterFactory
         ?string $comparison,
         Criteria $innerQuery
     ): AbstractFilter {
-        if ($comparison === null) {
-            $comparison = Criteria::IN;
-        }
+        $comparison ??= Criteria::IN;
 
-        switch ($comparison) {
-            case ExistsFilter::TYPE_EXISTS:
-            case ExistsFilter::TYPE_NOT_EXISTS:
-                return new ExistsFilter($outerQuery, null, $comparison, $innerQuery);
-            default:
-                return new ColumnToQueryFilter($outerQuery, $column, $comparison, $innerQuery);
-        }
+        return match ($comparison) {
+            ExistsFilter::TYPE_EXISTS, ExistsFilter::TYPE_NOT_EXISTS => new ExistsFilter($outerQuery, null, $comparison, $innerQuery),
+            default => new ColumnToQueryFilter($outerQuery, $column, $comparison, $innerQuery),
+        };
     }
 }

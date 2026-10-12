@@ -130,23 +130,25 @@ class ObjectFormatter extends AbstractFormatter
      */
     public function getAllObjectsFromRow(array $row): ActiveRecordInterface
     {
+        $indexType = $this->getDataFetcher()->getIndexType();
+
         // main object
-        [$obj, $col] = $this->getTableMap()->populateObject($row, 0, $this->getDataFetcher()->getIndexType());
+        [$obj, $col] = $this->getTableMap()->populateObject($row, 0, $indexType);
 
-        $pk = $obj->getPrimaryKey();
-        $serializedPk = serialize($pk);
-
-        if (isset($this->objects[$serializedPk])) {
-            //if instance pooling is disabled, we need to make sure we're working on the correct (already fetched) object
-            //so one-to-many relations are correctly loaded.
-            $obj = $this->objects[$serializedPk];
+        // objects are only registered when hydrating a one-to-many relation, see format()
+        if ($this->objects) {
+            $serializedPk = serialize($obj->getPrimaryKey());
+            if (isset($this->objects[$serializedPk])) {
+                //if instance pooling is disabled, we need to make sure we're working on the correct (already fetched) object
+                //so one-to-many relations are correctly loaded.
+                $obj = $this->objects[$serializedPk];
+            }
         }
 
         /** @var array<string, object> $hydrationChain */
         $hydrationChain = [];
 
         // related objects added using with()
-        $indexType = $this->getDataFetcher()->getIndexType();
         foreach ($this->getWith() as $modelWith) {
             [$endObject, $col] = $modelWith->getTableMap()->populateObject($row, $col, $indexType);
 

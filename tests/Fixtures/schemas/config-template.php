@@ -1,0 +1,44 @@
+<?php
+
+/** Configuration file for `schemas` fixtures */
+
+return [
+    'propel' => [
+        'general' => [
+            'project' => 'schemas',
+        ],
+        'database' => [
+            'connections' => [
+                'bookstore-schemas' => [
+                    'adapter' => '##DATABASE_VENDOR##',
+                    'classname' => '\\Propel\\Runtime\\Connection\\DebugPDO',
+                    'dsn' => '##DATABASE_URL##',
+                    'user' => '##DATABASE_USER##',
+                    'password' => '##DATABASE_PASSWORD##',
+                    'options' => [
+                        'ATTR_PERSISTENT' => false,
+                    ],
+                    'attributes' => [
+                        'ATTR_EMULATE_PREPARES' => true,
+                    ],
+                    'settings' => [
+                        'charset' => 'utf8',
+                    ],
+                ],
+            ],
+        ],
+        'generator' => [
+            'declareStrictTypesInBuilders' => true,
+            'defaultConnection' => 'bookstore-schemas',
+            'connections' => [
+                'bookstore-schemas',
+            ],
+        ],
+        'runtime' => [
+            'defaultConnection' => 'bookstore-schemas',
+            'connections' => [
+                'bookstore-schemas',
+            ],
+        ],
+    ],
+];

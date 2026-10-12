@@ -33,20 +33,21 @@ use Propel\Runtime\Map\RelationMap;
 use Propel\Runtime\Perpl;
 use Propel\Runtime\Util\PropelModelPager;
 use function array_key_exists;
+use function array_key_last;
 use function array_merge;
 use function array_shift;
 use function array_values;
 use function assert;
 use function count;
 use function current;
-use function end;
 use function explode;
 use function in_array;
 use function is_array;
-use function key;
 use function lcfirst;
 use function sprintf;
+use function str_contains;
 use function str_replace;
+use function str_starts_with;
 use function stripos;
 use function strlen;
 use function strpos;
@@ -531,7 +532,7 @@ class ModelCriteria extends BaseModelCriteria
     {
         // relation looks like '$leftName.$relationName $relationAlias'
         [$fullName, $relationAlias] = self::getClassAndAlias($relation);
-        if (strpos($fullName, '.') === false) {
+        if (!str_contains($fullName, '.')) {
             // simple relation name, refers to the current table
             $leftName = $this->getModelAliasOrName();
             $relationName = $fullName;
@@ -694,9 +695,7 @@ class ModelCriteria extends BaseModelCriteria
      */
     public function joinWith(string $relation, ?string $joinType = null)
     {
-        if ($joinType === null) {
-            $joinType = Criteria::INNER_JOIN;
-        }
+        $joinType ??= Criteria::INNER_JOIN;
 
         $this->join($relation, $joinType);
         $this->with(self::getRelationName($relation));
@@ -771,9 +770,7 @@ class ModelCriteria extends BaseModelCriteria
      */
     public function withColumn(string $clause, ?string $name = null)
     {
-        if ($name === null) {
-            $name = str_replace(['.', '(', ')'], '', $clause);
-        }
+        $name ??= str_replace(['.', '(', ')'], '', $clause);
 
         $clause = $this->normalizeFilterExpression($clause)->getNormalizedFilterExpression();
         // check that the columns of the main class are already added (if this is the primary ModelCriteria)
@@ -1072,11 +1069,7 @@ class ModelCriteria extends BaseModelCriteria
             return $this;
         }
 
-        if ($alias === null) {
-            // get the default alias set in parent::addSubquery()
-            end($this->subqueries);
-            $alias = (string)key($this->subqueries);
-        }
+        $alias ??= (string)array_key_last($this->subqueries);
 
         if ($subQuery->modelTableMapName === $this->modelTableMapName) {
             $this->setModelAlias($alias, true);
@@ -1202,12 +1195,12 @@ class ModelCriteria extends BaseModelCriteria
      */
     public static function getClassAndAlias(string $class): array
     {
-        if (strpos($class, ' ') !== false) {
+        if (str_contains($class, ' ')) {
             [$class, $alias] = explode(' ', $class);
         } else {
             $alias = null;
         }
-        if (strpos($class, '\\') === 0) {
+        if (str_starts_with($class, '\\')) {
             $class = substr($class, 1);
         }
 
@@ -1228,7 +1221,7 @@ class ModelCriteria extends BaseModelCriteria
         [$fullName, $relationAlias] = self::getClassAndAlias($relation);
         if ($relationAlias) {
             $relationName = $relationAlias;
-        } elseif (strpos($fullName, '.') === false) {
+        } elseif (!str_contains($fullName, '.')) {
             $relationName = $fullName;
         } else {
             [, $relationName] = explode('.', $fullName);
@@ -1359,9 +1352,7 @@ class ModelCriteria extends BaseModelCriteria
      */
     public function fetch(?ConnectionInterface $con = null): DataFetcherInterface
     {
-        if ($con === null) {
-            $con = Perpl::getServiceContainer()->getReadConnection($this->getDbName());
-        }
+        $con ??= Perpl::getServiceContainer()->getReadConnection($this->getDbName());
 
         $this->basePreSelect($con);
 
@@ -1532,9 +1523,7 @@ class ModelCriteria extends BaseModelCriteria
      */
     public function findPk($key, ?ConnectionInterface $con = null)
     {
-        if ($con === null) {
-            $con = Perpl::getServiceContainer()->getReadConnection($this->getDbName());
-        }
+        $con ??= Perpl::getServiceContainer()->getReadConnection($this->getDbName());
 
         // As the query uses a PK condition, no limit(1) is necessary.
         $this->basePreSelect($con);
@@ -1577,9 +1566,7 @@ class ModelCriteria extends BaseModelCriteria
      */
     public function findPks(array $keys, ?ConnectionInterface $con = null)
     {
-        if ($con === null) {
-            $con = Perpl::getServiceContainer()->getReadConnection($this->getDbName());
-        }
+        $con ??= Perpl::getServiceContainer()->getReadConnection($this->getDbName());
         // As the query uses a PK condition, no limit(1) is necessary.
         $this->basePreSelect($con);
         $criteria = $this->isKeepQuery() ? clone $this : $this;
@@ -1695,9 +1682,7 @@ class ModelCriteria extends BaseModelCriteria
      */
     public function count(?ConnectionInterface $con = null): int
     {
-        if ($con === null) {
-            $con = Perpl::getServiceContainer()->getReadConnection($this->getDbName());
-        }
+        $con ??= Perpl::getServiceContainer()->getReadConnection($this->getDbName());
 
         $this->basePreSelect($con);
         $criteria = $this->isKeepQuery() ? clone $this : $this;
@@ -1744,9 +1729,7 @@ class ModelCriteria extends BaseModelCriteria
      */
     public function exists(?ConnectionInterface $con = null): bool
     {
-        if ($con === null) {
-            $con = Perpl::getServiceContainer()->getReadConnection($this->getDbName());
-        }
+        $con ??= Perpl::getServiceContainer()->getReadConnection($this->getDbName());
 
         $this->basePreSelect($con);
         $criteria = $this->isKeepQuery() ? clone $this : $this;
@@ -1846,9 +1829,7 @@ class ModelCriteria extends BaseModelCriteria
             throw new PropelException(__METHOD__ . ' expects a Criteria with at least one condition. Use deleteAll() to delete all the rows of a table');
         }
 
-        if ($con === null) {
-            $con = Perpl::getServiceContainer()->getWriteConnection($this->getDbName());
-        }
+        $con ??= Perpl::getServiceContainer()->getWriteConnection($this->getDbName());
 
         $criteria = $this->isKeepQuery() ? clone $this : $this;
         $criteria->setDbName($this->getDbName());
@@ -1880,9 +1861,7 @@ class ModelCriteria extends BaseModelCriteria
      */
     public function deleteAll(?ConnectionInterface $con = null): int
     {
-        if ($con === null) {
-            $con = Perpl::getServiceContainer()->getWriteConnection($this->getDbName());
-        }
+        $con ??= Perpl::getServiceContainer()->getWriteConnection($this->getDbName());
         try {
             return $con->transaction(function () use ($con) {
                 $affectedRows = $this->basePreDelete($con);
@@ -1973,9 +1952,7 @@ class ModelCriteria extends BaseModelCriteria
             throw new PropelException(__METHOD__ . ' does not support multitable updates, please do not use join()');
         }
 
-        if ($con === null) {
-            $con = Perpl::getServiceContainer()->getWriteConnection($this->getDbName());
-        }
+        $con ??= Perpl::getServiceContainer()->getWriteConnection($this->getDbName());
 
         $criteria = $this->isKeepQuery() ? clone $this : $this;
 
@@ -2205,12 +2182,12 @@ class ModelCriteria extends BaseModelCriteria
         // Maybe it's a magic call to one of the methods supporting it, e.g. 'findByTitle'
         static $methods = ['findBy', 'findOneBy', 'requireOneBy', 'filterBy', 'orderBy', 'groupBy'];
         foreach ($methods as $methodName) {
-            $startsWithMethodName = strpos($name, $methodName) === 0;
+            $startsWithMethodName = str_starts_with($name, $methodName);
             if (!$startsWithMethodName) {
                 continue;
             }
             $columnExpression = substr($name, strlen($methodName));
-            $isMultipleColumnsExpression = in_array($methodName, ['findBy', 'findOneBy', 'requireOneBy'], true) && strpos($columnExpression, 'And') !== false;
+            $isMultipleColumnsExpression = in_array($methodName, ['findBy', 'findOneBy', 'requireOneBy'], true) && str_contains($columnExpression, 'And');
             if (!$isMultipleColumnsExpression) {
                 return $this->$methodName($columnExpression, ...$arguments);
             }
@@ -2253,9 +2230,7 @@ class ModelCriteria extends BaseModelCriteria
             if (in_array($type, ['left', 'right', 'inner'], true)) {
                 $joinType = strtoupper($type) . ' JOIN';
                 // Test if first argument is supplied, else don't provide an alias to joinXXX (default value)
-                if (!isset($arguments[0])) {
-                    $arguments[0] = null;
-                }
+                $arguments[0] ??= null;
                 $arguments[] = $joinType;
                 $methodName = lcfirst(substr($name, $pos));
 

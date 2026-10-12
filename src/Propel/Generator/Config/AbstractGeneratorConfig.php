@@ -82,9 +82,7 @@ abstract class AbstractGeneratorConfig extends ConfigurationManager
      */
     public function getBehaviorLocator(): BehaviorLocator
     {
-        if ($this->behaviorLocator === null) {
-            $this->behaviorLocator = new BehaviorLocator($this);
-        }
+        $this->behaviorLocator ??= new BehaviorLocator($this);
 
         return $this->behaviorLocator;
     }

@@ -1,0 +1,45 @@
+<?php
+
+/** Configuration file for `migration` fixtures */
+
+return [
+    'propel' => [
+        'general' => [
+            'project' => 'bookstore_namespaced',
+        ],
+        'database' => [
+            'connections' => [
+                'bookstore_namespaced' => [
+                    'adapter' => '##DATABASE_VENDOR##',
+                    'classname' => '\\Propel\\Runtime\\Connection\\DebugPDO',
+                    'dsn' => '##DATABASE_URL##',
+                    'user' => '##DATABASE_USER##',
+                    'password' => '##DATABASE_PASSWORD##',
+                    'options' => [
+                        'ATTR_PERSISTENT' => false,
+                    ],
+                    'attributes' => [
+                        'ATTR_EMULATE_PREPARES' => true,
+                    ],
+                    'settings' => [
+                        'charset' => 'utf8',
+                    ],
+                ],
+            ],
+        ],
+        'generator' => [
+            'defaultConnection' => 'bookstore_namespaced',
+            'connections' => [
+                'bookstore_namespaced',
+            ],
+            'targetPackage' => 'bookstore',
+            'declareStrictTypesInBuilders' => true,
+        ],
+        'runtime' => [
+            'defaultConnection' => 'bookstore_namespaced',
+            'connections' => [
+                'bookstore_namespaced',
+            ],
+        ],
+    ],
+];

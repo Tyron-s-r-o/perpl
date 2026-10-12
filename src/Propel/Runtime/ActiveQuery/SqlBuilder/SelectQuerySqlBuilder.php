@@ -139,7 +139,7 @@ class SelectQuerySqlBuilder extends AbstractSqlQueryBuilder
 
         $this->removeRecursiveSubqueryTableAliases($sourceTableNames);
 
-        $sourceTableNames = array_map([$this, 'quoteIdentifierTable'], $sourceTableNames);
+        $sourceTableNames = array_map($this->quoteIdentifierTable(...), $sourceTableNames);
 
         foreach ($this->criteria->getSubqueries() as $subQueryAlias => $subQueryCriteria) {
             $sourceTableNames[] = '(' . $subQueryCriteria->createSelectSql($params) . ') AS ' . $subQueryAlias;

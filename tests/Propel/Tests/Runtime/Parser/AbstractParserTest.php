@@ -10,7 +10,7 @@ namespace Propel\Tests\Runtime\Parser;
 
 use Propel\Runtime\Exception\FileNotFoundException;
 use Propel\Runtime\Parser\AbstractParser;
-use Propel\Runtime\Parser\XmlParser;
+use Propel\Runtime\Parser\JsonParser;
 use Propel\Tests\TestCase;
 use Propel\Generator\Util\VfsTrait;
 
@@ -28,8 +28,24 @@ class AbstractParserTest extends TestCase
      */
     public function testGetParser()
     {
-        $parser = AbstractParser::getParser('XML');
-        $this->assertTrue($parser instanceof XmlParser);
+        $parser = AbstractParser::getParser('JSON');
+        $this->assertTrue($parser instanceof JsonParser);
+    }
+
+    /**
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('provideRemovedFormats')]
+    public function testGetParserThrowsExceptionOnRemovedFormats(string $format)
+    {
+        $this->expectException(FileNotFoundException::class);
+
+        AbstractParser::getParser($format);
+    }
+
+    public static function provideRemovedFormats(): array
+    {
+        return [['XML'], ['CSV']];
     }
 
     /**
@@ -57,7 +73,7 @@ class AbstractParserTest extends TestCase
 
 XML
 );
-        $parser = AbstractParser::getParser('XML');
+        $parser = AbstractParser::getParser('JSON');
         $content = $parser->load($file->url());
         $expectedContent = <<<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -78,7 +94,7 @@ EOF;
         $testContent = 'Foo Content';
 
         $testFile = $this->newFile('propel_test');
-        $parser = AbstractParser::getParser('XML');
+        $parser = AbstractParser::getParser('JSON');
         $parser->dump($testContent, $testFile->url());
         $content = file_get_contents($testFile->url());
         $this->assertEquals($testContent, $content);

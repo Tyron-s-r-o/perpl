@@ -13,7 +13,6 @@ use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\Index;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Model\Unique;
-use Propel\Generator\Platform\PgsqlPlatform;
 use Propel\Generator\Platform\PlatformInterface;
 use Propel\Generator\Platform\SqlitePlatform;
 use RuntimeException;
@@ -237,7 +236,7 @@ class TableSyncer
         if (!$columnData) {
             return;
         }
-        array_map([$table, 'addColumn'], $columnData);
+        array_map($table->addColumn(...), $columnData);
     }
 
     /**
@@ -442,8 +441,8 @@ class TableSyncer
         if (!$this->config->getColumnPrefix()) {
             return;
         }
-        $updatedColumnNames = array_map([$this, 'getPrefixedColumnName'], $index->getColumns());
-        $columns = array_map([$table, 'getColumn'], $updatedColumnNames);
+        $updatedColumnNames = array_map($this->getPrefixedColumnName(...), $index->getColumns());
+        $columns = array_map($table->getColumn(...), $updatedColumnNames);
         $index->setColumns($columns);
     }
 
@@ -563,7 +562,7 @@ class TableSyncer
      */
     protected function isDistinctiveIndexNameRequired(?PlatformInterface $platform): bool
     {
-        return $platform instanceof PgsqlPlatform || $platform instanceof SqlitePlatform;
+        return $platform instanceof SqlitePlatform;
     }
 
     /**

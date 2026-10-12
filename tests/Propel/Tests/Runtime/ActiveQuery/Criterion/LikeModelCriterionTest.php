@@ -11,7 +11,6 @@ namespace Propel\Tests\Runtime\ActiveQuery\Criterion;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\Exception\InvalidClauseException;
 use Propel\Runtime\ActiveQuery\Criterion\LikeModelCriterion;
-use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Adapter\Pdo\SqliteAdapter;
 use Propel\Tests\Helpers\BaseTestCase;
 
@@ -71,43 +70,5 @@ class LikeModelCriterionTest extends BaseTestCase
         $params = [];
         $ps = '';
         $cton->appendPsTo($ps, $params);
-    }
-
-    /**
-     * @return void
-     */
-    public function testAppendPsToCreatesACaseInsensitiveLikeConditionIfSpecifiedOnPgSQL()
-    {
-        $cton = new LikeModelCriterion(new Criteria(), 'A.COL LIKE ?', 'A.COL', 'foo%');
-        $cton->setAdapter(new PgsqlAdapter());
-        $cton->setIgnoreCase(true);
-        $params = [];
-        $ps = '';
-        $cton->appendPsTo($ps, $params);
-
-        $this->assertEquals('A.COL ILIKE :p1', $ps);
-        $expected = [
-            ['table' => 'A', 'column' => 'COL', 'value' => 'foo%'],
-        ];
-        $this->assertEquals($expected, $params);
-    }
-
-    /**
-     * @return void
-     */
-    public function testAppendPsToWithCaseInsensitiveAndPostgreSQLUsesNOTILIKE()
-    {
-        $cton = new LikeModelCriterion(new Criteria(), 'A.COL NOT LIKE ?', 'A.COL', 'foo%');
-        $cton->setAdapter(new PgsqlAdapter());
-        $cton->setIgnoreCase(true);
-        $params = [];
-        $ps = '';
-        $cton->appendPsTo($ps, $params);
-
-        $this->assertEquals('A.COL NOT ILIKE :p1', $ps);
-        $expected = [
-            ['table' => 'A', 'column' => 'COL', 'value' => 'foo%'],
-        ];
-        $this->assertEquals($expected, $params);
     }
 }

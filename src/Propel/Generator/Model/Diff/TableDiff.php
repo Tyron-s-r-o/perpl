@@ -10,6 +10,7 @@ use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\Index;
 use Propel\Generator\Model\Table;
+use Stringable;
 use function array_reverse;
 use function json_encode;
 use function sprintf;
@@ -19,7 +20,7 @@ use function sprintf;
  * Heavily inspired by Doctrine2's Migrations
  * (see http://github.com/doctrine/dbal/tree/master/lib/Doctrine/DBAL/Schema/)
  */
-class TableDiff
+class TableDiff implements Stringable
 {
     /**
      * The first Table object.
@@ -272,11 +273,7 @@ class TableDiff
      */
     public function getAddedColumn(string $columnName): ?Column
     {
-        if (isset($this->addedColumns[$columnName])) {
-            return $this->addedColumns[$columnName];
-        }
-
-        return null;
+        return $this->addedColumns[$columnName] ?? null;
     }
 
     /**
@@ -338,11 +335,7 @@ class TableDiff
      */
     public function getRemovedColumn(string $columnName): ?Column
     {
-        if (isset($this->removedColumns[$columnName])) {
-            return $this->removedColumns[$columnName];
-        }
-
-        return null;
+        return $this->removedColumns[$columnName] ?? null;
     }
 
     /**

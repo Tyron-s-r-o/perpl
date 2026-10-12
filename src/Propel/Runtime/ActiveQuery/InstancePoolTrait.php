@@ -4,11 +4,10 @@ declare(strict_types = 1);
 
 namespace Propel\Runtime\ActiveQuery;
 
-use Countable;
 use Propel\Runtime\Exception\LogicException;
 use Propel\Runtime\Perpl;
 use function count;
-use function is_array;
+use function is_countable;
 use function is_object;
 use function is_scalar;
 use function serialize;
@@ -45,7 +44,7 @@ trait InstancePoolTrait
         if (!($value instanceof Criteria) && is_object($value)) {
             $pk = $value->getPrimaryKey();
             if (
-                ((is_array($pk) || $pk instanceof Countable) && count($pk) > 1)
+                ((is_countable($pk)) && count($pk) > 1)
                 || is_object($pk)
             ) {
                 $pk = serialize($pk);

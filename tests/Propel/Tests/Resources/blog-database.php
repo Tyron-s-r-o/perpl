@@ -1,6 +1,5 @@
 <?php
 
-use Propel\Generator\Behavior\Sluggable\SluggableBehavior;
 use Propel\Generator\Behavior\Timestampable\TimestampableBehavior;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\Database;
@@ -126,8 +125,6 @@ $authorUsernameUnique->setColumns([ [ 'name' => 'username', 'size' => '8' ] ]);
 /* Behaviors */
 $timestampableBehavior = new TimestampableBehavior();
 $timestampableBehavior->setName('timestampable');
-$sluggableBehavior = new SluggableBehavior();
-$sluggableBehavior->setName('sluggable');
 
 /* Tables */
 $table1 = new Table('blog_post');
@@ -137,7 +134,6 @@ $table1->setPackage('Acme.Blog');
 $table1->addColumns([ $column11, $column12, $column13, $column14, $column15, $column16, $column17 ]);
 $table1->addForeignKeys([ $fkAuthorPost, $fkCategoryPost ]);
 $table1->addBehavior($timestampableBehavior);
-$table1->addBehavior($sluggableBehavior);
 
 $table2 = new Table('blog_author');
 $table2->setDescription('The list of authors');

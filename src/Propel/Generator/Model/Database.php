@@ -9,20 +9,21 @@ use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Exception\InvalidArgumentException;
 use Propel\Generator\Exception\SchemaException;
 use Propel\Generator\Platform\PlatformInterface;
+use Stringable;
 use function array_search;
 use function explode;
 use function implode;
 use function in_array;
 use function ltrim;
 use function sprintf;
-use function strpos;
+use function str_contains;
 use function strtolower;
 use function strtoupper;
 
 /**
  * A class for holding application data structures.
  */
-class Database extends ScopedMappingModel
+class Database extends ScopedMappingModel implements Stringable
 {
     use BehaviorableTrait;
 
@@ -336,14 +337,14 @@ class Database extends ScopedMappingModel
      */
     public static function getSupportedStringFormats(): array
     {
-        return ['XML', 'YAML', 'JSON', 'CSV'];
+        return ['JSON'];
     }
 
     /**
      * Sets the default string format for ActiveRecord objects in this table.
      * This parameter can be overridden at the table level.
      *
-     * Any of 'XML', 'YAML', 'JSON', or 'CSV'.
+     * Only 'JSON' is supported.
      *
      * @param string $format
      *
@@ -483,7 +484,7 @@ class Database extends ScopedMappingModel
     {
         if (
             $this->getSchema() && $this->getPlatform()->supportsSchemas()
-            && strpos($name, $this->getPlatform()->getSchemaDelimiter()) === false
+            && !str_contains($name, $this->getPlatform()->getSchemaDelimiter())
         ) {
             $name = $this->getSchema() . $this->getPlatform()->getSchemaDelimiter() . $name;
         }
@@ -521,11 +522,7 @@ class Database extends ScopedMappingModel
      */
     public function getTableByPhpName(string $phpName): ?Table
     {
-        if (isset($this->tablesByPhpName[$phpName])) {
-            return $this->tablesByPhpName[$phpName];
-        }
-
-        return null;
+        return $this->tablesByPhpName[$phpName] ?? null;
     }
 
     /**
@@ -690,12 +687,12 @@ class Database extends ScopedMappingModel
             $fixHash = function (&$array) use ($schema, $oldSchema, $schemaDelimiter): void {
                 foreach ($array as $k => $v) {
                     if ($schema && $this->getPlatform()->supportsSchemas()) {
-                        if (strpos($k, $schemaDelimiter) === false) {
+                        if (!str_contains($k, $schemaDelimiter)) {
                             $array[$schema . $schemaDelimiter . $k] = $v;
                             unset($array[$k]);
                         }
                     } elseif ($oldSchema) {
-                        if (strpos($k, $schemaDelimiter) !== false) {
+                        if (str_contains($k, $schemaDelimiter)) {
                             $array[explode($schemaDelimiter, $k)[1]] = $v;
                             unset($array[$k]);
                         }

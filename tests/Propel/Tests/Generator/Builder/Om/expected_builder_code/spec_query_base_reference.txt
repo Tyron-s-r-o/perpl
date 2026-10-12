@@ -22,9 +22,6 @@ class SpecQuery extends GenQuery
     /**
      * Returns a new ChildSpecQuery object.
      *
-     * @param string|null $modelAlias The alias of a model in the query
-     * @param \Propel\Runtime\ActiveQuery\Criteria|null $criteria Optional Criteria to build the query from
-     *
      * @return \SpecQuery
      */
     public static function create(?string $modelAlias = null, ?Criteria $criteria = null): Criteria
@@ -45,10 +42,6 @@ class SpecQuery extends GenQuery
 
     /**
      * Filters the query to target only Spec objects.
-     *
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con a connection object
-     *
-     * @return void
      */
     public function preSelect(ConnectionInterface $con): void
     {
@@ -59,10 +52,7 @@ class SpecQuery extends GenQuery
      * Filters the query to target only Spec objec
      *
      * @param array $values The associative array of columns and values for the update
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con The connection object used by the query
      * @param bool $forceIndividualSaves If false (default), the resulting call is a Criteria::doUpdate(), otherwise it is a series of save() calls on all the found objects
-     *
-     * @return int|null
      */
     public function preUpdate(&$values, ConnectionInterface $con, $forceIndividualSaves = false): ?int
     {
@@ -73,10 +63,6 @@ class SpecQuery extends GenQuery
 
     /**
      * Filters the query to target only Spec objects.
-     *
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con a connection object
-     *
-     * @return int|null
      */
     public function preDelete(ConnectionInterface $con): ?int
     {
@@ -89,10 +75,6 @@ class SpecQuery extends GenQuery
      * Issue a DELETE query based on the current ModelCriteria deleting all rows in the table
      * Having the Spec class.
      * This method is called by ModelCriteria::deleteAll() inside a transaction
-     *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con a connection object
-     *
-     * @return int The number of deleted rows
      */
     public function doDeleteAll(?ConnectionInterface $con = null): int
     {

@@ -110,7 +110,7 @@ class GenspecTableTableMap extends TableMap
      *
      * @var string
      */
-    public const DEFAULT_STRING_FORMAT = 'YAML';
+    public const DEFAULT_STRING_FORMAT = 'JSON';
 
     /**
      * @var class-string<\Base\Collection\GenspecTableCollection>
@@ -230,8 +230,6 @@ class GenspecTableTableMap extends TableMap
     /**
      * Initialize the table attributes and columns
      * Relations are not initialized by this method since they are lazy loaded
-     *
-     * @return void
      */
     public function initialize(): void
     {
@@ -250,8 +248,6 @@ class GenspecTableTableMap extends TableMap
 
     /**
      * Build the RelationMap objects for this table relationships
-     *
-     * @return void
      */
     public function buildRelations(): void
     {
@@ -266,9 +262,6 @@ class GenspecTableTableMap extends TableMap
      * and findPk*() calls.
      *
      * @param \GenspecTable $obj
-     * @param string|null $key Optional internal key if it was already generated
-     *
-     * @return void
      */
     public static function addInstanceToPool($obj, string|null $key = null): void
     {
@@ -292,8 +285,6 @@ class GenspecTableTableMap extends TableMap
      * Passing in a Criteria clears the whole cache and is deprecated.
      *
      * @param \GenspecTable|\Propel\Runtime\ActiveQuery\Criteria|int|null $value A GenspecTable object or a primary key value.
-     *
-     * @return void
      */
     public static function removeInstanceFromPool($value): void
     {
@@ -317,8 +308,6 @@ class GenspecTableTableMap extends TableMap
     /**
      * Method to invalidate the instance pool of all tables related to GenspecTable
      * by a foreign key with ON DELETE CASCADE
-     *
-     * @return void
      */
     public static function clearRelatedInstancePool(): void
     {
@@ -328,11 +317,7 @@ class GenspecTableTableMap extends TableMap
      * Returns a serialized version of the primary key as unique identifier of the row.
      *
      * @param array<mixed> $row Resultset row.
-     * @param int $offset The 0-based offset for reading from the resultset row.
-     * @param string $indexType One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME
      *                           TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM
-     *
-     * @return string|null The primary key hash of the row or null if value cannot be resolved
      */
     public static function getPrimaryKeyHashFromRow(array $row, int $offset = 0, string $indexType = TableMap::TYPE_NUM): ?string
     {
@@ -344,10 +329,6 @@ class GenspecTableTableMap extends TableMap
 
     /**
      * Returns a serialized version of the primary key as unique identifier of the model instance.
-     *
-     * @param \GenspecTable $genspecTable
-     *
-     * @return string|null
      */
     public static function getPrimaryKeyHashFromObject(GenspecTable $genspecTable): string|null
     {
@@ -360,8 +341,6 @@ class GenspecTableTableMap extends TableMap
      * For tables with a multi-column primary key, an array of the primary key columns will be returned.
      *
      * @param array<mixed> $row Resultset row.
-     * @param int $offset The 0-based offset for reading from the resultset row.
-     * @param string $indexType One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME
      *                           TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM
      *
      * @return int
@@ -377,10 +356,6 @@ class GenspecTableTableMap extends TableMap
      *
      * @psalm-return ($withPrefix is true ? string : class-string<\GenspecTable>)
      *
-     * @param array $row Fetched row.
-     * @param int $offset Start of tuple data in row.
-     * @param bool $withPrefix If true, namespace will be separated by dots, regular backslashes otherwise.
-     *
      * @return class-string<\GenspecTable>|string
      */
     public static function getOMClass(array $row, int $offset, bool $withPrefix = true): string
@@ -394,9 +369,6 @@ class GenspecTableTableMap extends TableMap
     /**
      * Populates an object of the default type or an object that inherit from the default.
      *
-     * @param array $row Row returned by DataFetcher->fetch().
-     * @param int $offset The 0-based offset for reading from the resultset row.
-     * @param string $indexType The index type of $row. Mostly DataFetcher->getIndexType().
      *                           One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME
      *                           TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.
      *
@@ -422,8 +394,6 @@ class GenspecTableTableMap extends TableMap
     /**
      * The returned array will contain objects of the default type or
      * objects that inherit from the default.
-     *
-     * @param \Propel\Runtime\DataFetcher\DataFetcherInterface $dataFetcher
      *
      * @return array<object>
      */
@@ -457,11 +427,6 @@ class GenspecTableTableMap extends TableMap
      * Note: any columns that were marked with lazyLoad="true" in the
      * XML schema will not be added to the select list and only loaded
      * on demand.
-     *
-     * @param \Propel\Runtime\ActiveQuery\Criteria $criteria Object containing the columns to add.
-     * @param string|null $alias Optional table alias
-     *
-     * @return void
      */
     public static function addSelectColumns(Criteria $criteria, ?string $alias = null): void
     {
@@ -476,11 +441,6 @@ class GenspecTableTableMap extends TableMap
      *
      * Note: any columns that were marked with lazyLoad="true" in the
      * XML schema will not be removed as they are only loaded on demand.
-     *
-     * @param \Propel\Runtime\ActiveQuery\Criteria $criteria Object containing the columns to remove.
-     * @param string|null $alias Optional table alias
-     *
-     * @return void
      */
     public static function removeSelectColumns(Criteria $criteria, ?string $alias = null): void
     {
@@ -514,9 +474,7 @@ class GenspecTableTableMap extends TableMap
      *
      * @param mixed $values Criteria or GenspecTable object or primary key or array of primary keys
      *              which is used to create the DELETE statement
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con the connection to use
      *
-     * @return int The number of affected rows (if supported by underlying database driver). This includes CASCADE-related rows
      *                         if supported by native driver or if emulated using Propel.
      */
     public static function doDelete($values, ?ConnectionInterface $con = null): int
@@ -547,10 +505,6 @@ class GenspecTableTableMap extends TableMap
 
     /**
      * Deletes all rows from the genspec_table table.
-     *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con the connection to use
-     *
-     * @return int The number of affected rows (if supported by underlying database driver).
      */
     public static function doDeleteAll(?ConnectionInterface $con = null): int
     {
@@ -561,9 +515,6 @@ class GenspecTableTableMap extends TableMap
      * Performs an INSERT on the database, given a GenspecTable or Criteria object.
      *
      * @param \Propel\Runtime\ActiveQuery\Criteria|\GenspecTable $criteria
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con
-     *
-     * @throws \Propel\Runtime\Exception\PropelException
      *
      * @return mixed The new primary key.
      */

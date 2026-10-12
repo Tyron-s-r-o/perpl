@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
-use function strpos;
+use function str_contains;
 
 /**
  * Class PropelConfiguration
@@ -114,7 +114,7 @@ class PropelConfiguration implements ConfigurationInterface
                             ->always()
                                 ->then(function ($connections) {
                                     foreach ($connections as $name => $connection) {
-                                        if (strpos($name, '.') !== false) {
+                                        if (str_contains($name, '.')) {
                                             throw new InvalidArgumentException('Dots are not allowed in connection names');
                                         }
                                     }
@@ -132,7 +132,7 @@ class PropelConfiguration implements ConfigurationInterface
                                     ->enumNode('adapter')
                                         ->isRequired()
                                         ->cannotBeEmpty()
-                                        ->values(['mysql', 'pgsql', 'sqlite', 'mssql', 'sqlsrv', 'oracle'])
+                                        ->values(['mysql', 'sqlite'])
                                     ->end()
                                     ->scalarNode('dsn')->isRequired()->cannotBeEmpty()->end()
                                     ->scalarNode('user')->isRequired()->end()
@@ -195,12 +195,6 @@ class PropelConfiguration implements ConfigurationInterface
                                     ->children()
                                         ->scalarNode('foreignKey')->end()
                                         ->scalarNode('tableAlteringWorkaround')->end()
-                                    ->end()
-                                ->end()
-                                ->arrayNode('oracle')
-                                    ->addDefaultsIfNotSet()
-                                    ->children()
-                                        ->scalarNode('autoincrementSequencePattern')->defaultValue('${table}_SEQ')->end()
                                     ->end()
                                 ->end()
                             ->end()
@@ -374,7 +368,6 @@ class PropelConfiguration implements ConfigurationInterface
                                 ->booleanNode('autoPrefix')->defaultFalse()->end()
                                 ->booleanNode('autoPackage')->defaultFalse()->end()
                                 ->booleanNode('autoNamespace')->defaultFalse()->end()
-                                ->booleanNode('transform')->defaultFalse()->end()
                             ->end()
                         ->end() //schema
                         ->arrayNode('dateTime')

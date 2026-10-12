@@ -385,9 +385,7 @@ class Behavior extends MappingModel
      */
     public function renderTemplate(string $filename, array $vars = [], ?string $templatePath = null): string
     {
-        if ($templatePath === null) {
-            $templatePath = $this->getTemplatePath($this->getDirname());
-        }
+        $templatePath ??= $this->getTemplatePath($this->getDirname());
 
         $filePath = $templatePath . $filename;
         if (!file_exists($filePath)) {

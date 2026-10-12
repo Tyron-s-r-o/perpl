@@ -46,27 +46,13 @@ class AbstractOMBuilderTest extends TestCase
         $author = new Author();
         $author->setFirstName('John');
         $author->setLastName('Doe');
-        $expected = <<<EOF
-Id: null
-FirstName: John
-LastName: Doe
-Email: null
-Age: null
-
-EOF;
+        $expected = '{"Id":null,"FirstName":"John","LastName":"Doe","Email":null,"Age":null}';
         $this->assertEquals($expected, (string)$author, 'generated __toString() uses default string format and exportTo()');
 
         $publisher = new Publisher();
         $publisher->setId(345345);
         $publisher->setName('Peguinoo');
-        $expected = <<<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<data>
-  <Id>345345</Id>
-  <Name><![CDATA[Peguinoo]]></Name>
-</data>
-
-EOF;
+        $expected = '{"Id":345345,"Name":"Peguinoo"}';
         $this->assertEquals($expected, (string)$publisher, 'generated __toString() uses default string format and exportTo()');
     }
 

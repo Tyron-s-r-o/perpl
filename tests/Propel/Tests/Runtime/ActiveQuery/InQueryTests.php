@@ -126,7 +126,7 @@ class InQueryTests extends TestCaseFixturesDatabase
     public function testUseInRelationQuery()
     {
         $query = AuthorQuery::create()
-            ->useInBookQuery()
+            ->useInQuery('Book')
             ->filterByPrice(15, Criteria::LESS_EQUAL)
             ->endUse();
 
@@ -140,7 +140,7 @@ class InQueryTests extends TestCaseFixturesDatabase
     public function testUseNotInRelationQuery()
     {
         $query = AuthorQuery::create()
-            ->useNotInBookQuery()
+            ->useNotInQuery('Book')
             ->filterByPrice(15, Criteria::LESS_EQUAL)
             ->endUse();
 

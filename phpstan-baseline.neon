@@ -49,18 +49,6 @@ parameters:
 			path: src/Propel/Common/Config/PropelConfiguration.php
 
 		-
-			message: '#^Parameter &\$script by\-ref type of method Propel\\Generator\\Behavior\\I18n\\I18nBehaviorObjectBuilderModifier\:\:objectFilter\(\) expects string, string\|null given\.$#'
-			identifier: parameterByRef.type
-			count: 1
-			path: src/Propel/Generator/Behavior/I18n/I18nBehaviorObjectBuilderModifier.php
-
-		-
-			message: '#^Variable \$col might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: src/Propel/Generator/Behavior/Versionable/VersionableBehaviorObjectBuilderModifier.php
-
-		-
 			message: '#^Variable \$mysqlInvalidDateString might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -310,32 +298,3 @@ parameters:
 			count: 1
 			path: src/Propel/Runtime/Util/PropelModelPager.php
 
-		-
-			message: '#^Parameter \$exactly of method Symfony\\Component\\Validator\\Constraints\\Length\:\:__construct\(\) expects int\<1, max\>\|null, int\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Propel/Runtime/Validator/Constraints/Length.php
-
-		-
-			message: '#^Parameter \$max of method Symfony\\Component\\Validator\\Constraints\\Length\:\:__construct\(\) expects int\<1, max\>\|null, int\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Propel/Runtime/Validator/Constraints/Length.php
-
-		-
-			message: '#^Parameter \$min of method Symfony\\Component\\Validator\\Constraints\\Length\:\:__construct\(\) expects int\<0, max\>\|null, int\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Propel/Runtime/Validator/Constraints/Length.php
-
-		-
-			message: '#^Parameter \#1 \$type of method Symfony\\Component\\Validator\\Constraints\\Type\:\:__construct\(\) expects list\<string\>\|string\|null, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Propel/Runtime/Validator/Constraints/Type.php
-
-		-
-			message: '#^Access to an undefined property Symfony\\Component\\Validator\\Constraint\:\:\$message\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Propel/Runtime/Validator/Constraints/UniqueValidator.php

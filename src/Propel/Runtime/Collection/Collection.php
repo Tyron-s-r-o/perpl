@@ -19,6 +19,7 @@ use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Parser\AbstractParser;
 use Propel\Runtime\Perpl;
 use Serializable;
+use Stringable;
 use Traversable;
 use function array_map;
 use function array_pop;
@@ -36,7 +37,7 @@ use function reset;
 use function serialize;
 use function spl_object_hash;
 use function sprintf;
-use function strpos;
+use function str_starts_with;
 use function strrpos;
 use function substr;
 use function trigger_error;
@@ -47,22 +48,16 @@ use const E_USER_NOTICE;
  * Class for iterating over a list of Propel elements
  * The collection keys must be integers - no associative array accepted
  *
- * @method \Propel\Runtime\Collection\Collection<mixed> fromXML(string $data) Populate the collection from an XML string
- * @method \Propel\Runtime\Collection\Collection<mixed> fromYAML(string $data) Populate the collection from a YAML string
  * @method \Propel\Runtime\Collection\Collection<mixed> fromJSON(string $data) Populate the collection from a JSON string
- * @method \Propel\Runtime\Collection\Collection<mixed> fromCSV(string $data) Populate the collection from a CSV string
  *
- * @method string toXML(bool $usePrefix = true, bool $includeLazyLoadColumns = true) Export the collection to an XML string
- * @method string toYAML(bool $usePrefix = true, bool $includeLazyLoadColumns = true) Export the collection to a YAML string
  * @method string toJSON(bool $usePrefix = true, bool $includeLazyLoadColumns = true) Export the collection to a JSON string
- * @method string toCSV(bool $usePrefix = true, bool $includeLazyLoadColumns = true) Export the collection to a CSV string
  *
  * @template RowFormat
  *
  * @implements \ArrayAccess<int|string, RowFormat>
  * @implements \IteratorAggregate<int|string, RowFormat>
  */
-class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializable
+class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializable, Stringable
 {
     protected string|null $model = null;
 
@@ -584,7 +579,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      * $coll->importFrom('JSON', '{{"Id":9012,"Title":"Don Juan","ISBN":"0140422161","Price":12.99,"PublisherId":1234,"AuthorId":5678}}');
      * </code>
      *
-     * @param mixed $parser A AbstractParser instance, or a format name ('XML', 'YAML', 'JSON', 'CSV')
+     * @param mixed $parser A AbstractParser instance, or a format name ('JSON')
      * @param string $data The source data to import from
      *
      * @throws \LogicException
@@ -615,7 +610,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      *
      * A OnDemandCollection cannot be exported. Any attempt will result in a PropelException being thrown.
      *
-     * @param \Propel\Runtime\Parser\AbstractParser|string $parser A AbstractParser instance, or a format name ('XML', 'YAML', 'JSON', 'CSV')
+     * @param \Propel\Runtime\Parser\AbstractParser|string $parser A AbstractParser instance, or a format name ('JSON')
      * @param bool $usePrefix (optional) If true, the returned element keys will be prefixed with the
      * model class name ('Article_0', 'Article_1', etc). Defaults to TRUE.
      * Not supported by ArrayCollection, as ArrayFormatter has
@@ -646,7 +641,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
     /**
      * Catches calls to undefined methods.
      *
-     * Provides magic import/export method support (fromXML()/toXML(), fromYAML()/toYAML(), etc.).
+     * Provides magic import/export method support (fromJSON()/toJSON()).
      * Allows to define default __call() behavior if you use a custom BaseObject
      *
      * @param string $name
@@ -658,14 +653,14 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function __call(string $name, $params)
     {
-        if (strpos($name, 'from') === 0) {
+        if (str_starts_with($name, 'from')) {
             $format = substr($name, 4);
             $this->importFrom($format, reset($params));
 
             return null;
         }
 
-        if (strpos($name, 'to') === 0) {
+        if (str_starts_with($name, 'to')) {
             $format = substr($name, 2);
             $usePrefix = $params[0] ?? false;
             $includeLazyLoadColumns = $params[1] ?? true;
@@ -711,9 +706,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     protected function getPluralizer(): PluralizerInterface
     {
-        if ($this->pluralizer === null) {
-            $this->pluralizer = $this->createPluralizer();
-        }
+        $this->pluralizer ??= $this->createPluralizer();
 
         return $this->pluralizer;
     }

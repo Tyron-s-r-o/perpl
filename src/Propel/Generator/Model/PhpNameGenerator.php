@@ -6,6 +6,7 @@ namespace Propel\Generator\Model;
 
 use function count;
 use function preg_match_all;
+use function str_starts_with;
 use function strlen;
 use function strtok;
 use function strtolower;
@@ -48,28 +49,17 @@ class PhpNameGenerator implements NameGeneratorInterface
 
         if (count($inputs) > 2) {
             $prefix = (string)$inputs[2];
-            if ($prefix && substr($schemaName, 0, strlen($prefix)) === $prefix) {
+            if ($prefix && str_starts_with($schemaName, $prefix)) {
                 $schemaName = substr($schemaName, strlen($prefix));
             }
         }
 
-        switch ($method) {
-            case self::CONV_METHOD_CLEAN:
-                $phpName = $this->cleanMethod($schemaName);
-
-                break;
-            case self::CONV_METHOD_PHPNAME:
-                $phpName = $this->phpNameMethod($schemaName);
-
-                break;
-            case self::CONV_METHOD_NOCHANGE:
-                $phpName = $this->noChangeMethod($schemaName);
-
-                break;
-            case self::CONV_METHOD_UNDERSCORE:
-            default:
-                $phpName = $this->underscoreMethod($schemaName);
-        }
+        $phpName = match ($method) {
+            self::CONV_METHOD_CLEAN => $this->cleanMethod($schemaName),
+            self::CONV_METHOD_PHPNAME => $this->phpNameMethod($schemaName),
+            self::CONV_METHOD_NOCHANGE => $this->noChangeMethod($schemaName),
+            default => $this->underscoreMethod($schemaName),
+        };
 
         return $phpName;
     }

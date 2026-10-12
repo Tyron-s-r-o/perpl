@@ -24,8 +24,10 @@ use function is_subclass_of;
 use function preg_match;
 use function preg_replace;
 use function sprintf;
+use function str_contains;
+use function str_ends_with;
 use function str_replace;
-use function strpos;
+use function str_starts_with;
 use function strrpos;
 use function substr;
 use function trim;
@@ -232,11 +234,11 @@ class ReferencedClasses
 
         // we have a duplicate class and asked for an automatic Alias
         if ($alias !== false) {
-            if (substr($namespace, -5) === '\\Base' || $namespace === 'Base') {
+            if (str_ends_with($namespace, '\\Base') || $namespace === 'Base') {
                 return $this->registerSimpleClassName($class, $namespace, 'Base' . $class);
             }
 
-            if (substr((string)$alias, 0, 5) === 'Child') {
+            if (str_starts_with((string)$alias, 'Child')) {
                 //we already requested Child.$class and its in use too,
                 //so use the fqcn
                 return ($namespace ? '\\' . $namespace : '') . '\\' . $class;
@@ -326,7 +328,7 @@ class ReferencedClasses
                 return true;
             }
 
-            if (strpos($class, 'Query') !== false) {
+            if (str_contains($class, 'Query')) {
                 return true;
             }
 

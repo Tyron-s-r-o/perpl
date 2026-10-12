@@ -21,12 +21,6 @@
         <column name="total_books" type="INTEGER"/>
         <column name="store_open_time" type="TIME"/>
         <column name="website" type="VARCHAR" size="255"/>
-        <behavior name="aggregate_column">
-            <parameter name="name" value="total_contest_entries"/>
-            <parameter name="expression" value="COUNT(customer_id)"/>
-            <parameter name="foreign_table" value="bookstore_contest_entry"/>
-            <parameter name="foreign_schema" value="contest"/>
-        </behavior>
     </table>
 
     <table name="customer" allowPkInsert="true">
@@ -71,14 +65,6 @@
             <unique-column name="bookstore_id"/>
             <unique-column name="id"/>
         </unique>
-    </table>
-
-    <table name="second_hand_book" schema="second_hand_books">
-        <column name="age" type="INTEGER"/>
-        <behavior name="concrete_inheritance">
-            <parameter name="extends" value="book"/>
-            <parameter name="schema" value="bookstore_schemas"/>
-        </behavior>
     </table>
 
     <table name="bookstore_contest_entry" schema="contest" reloadOnInsert="true">

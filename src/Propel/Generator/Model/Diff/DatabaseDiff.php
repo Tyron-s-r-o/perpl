@@ -6,6 +6,7 @@ namespace Propel\Generator\Model\Diff;
 
 use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Model\Table;
+use Stringable;
 use function array_flip;
 use function count;
 use function implode;
@@ -16,7 +17,7 @@ use function sprintf;
  * Heavily inspired by Doctrine2's Migrations
  * (see http://github.com/doctrine/dbal/tree/master/lib/Doctrine/DBAL/Schema/)
  */
-class DatabaseDiff
+class DatabaseDiff implements Stringable
 {
     /**
      * @var array<string, \Propel\Generator\Model\Table>

@@ -13,7 +13,6 @@ use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Lock;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Adapter\Pdo\MysqlAdapter;
-use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Propel;
 use Propel\Tests\Bookstore\BookQuery;
@@ -318,8 +317,8 @@ class CriteriaTest extends BookstoreTestBase
     public function testCriterionIgnoreCase()
     {
         $originalDB = Propel::getServiceContainer()->getAdapter();
-        $adapters = [new MysqlAdapter(), new PgsqlAdapter()];
-        $expectedIgnore = ['UPPER(TABLE.COLUMN) LIKE UPPER(:p1)', 'TABLE.COLUMN ILIKE :p1'];
+        $adapters = [new MysqlAdapter()];
+        $expectedIgnore = ['UPPER(TABLE.COLUMN) LIKE UPPER(:p1)'];
 
         $i = 0;
         foreach ($adapters as $adapter) {
@@ -1425,11 +1424,7 @@ class CriteriaTest extends BookstoreTestBase
 
         $result = $c->createSelectSql($params);
 
-        if ($this->runningOnPostgreSQL()) {
-            $sql = 'SELECT book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id, COUNT(review.id) AS Count FROM book LEFT JOIN review ON (book.id=review.book_id) GROUP BY book.id,book.title,book.isbn,book.price,book.publisher_id,book.author_id';
-        } else {
-            $sql = $this->getSql('SELECT book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id, COUNT(review.id) AS Count FROM book LEFT JOIN review ON (book.id=review.book_id) GROUP BY book.id');
-        }
+        $sql = $this->getSql('SELECT book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id, COUNT(review.id) AS Count FROM book LEFT JOIN review ON (book.id=review.book_id) GROUP BY book.id');
 
         $this->assertEquals($sql, $result);
     }

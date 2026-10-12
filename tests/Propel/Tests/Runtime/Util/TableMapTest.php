@@ -10,7 +10,6 @@ namespace Propel\Tests\Runtime\Util;
 
 use Exception;
 use Propel\Runtime\ActiveQuery\Criteria;
-use Propel\Runtime\Adapter\Pdo\MssqlAdapter;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Propel;
 use Propel\Tests\Bookstore\BookQuery;
@@ -38,26 +37,6 @@ class TableMapTest extends BookstoreTestBase
         parent::setUpBeforeClass();
         BookstoreDataPopulator::depopulate();
         BookstoreDataPopulator::populate();
-    }
-
-    /**
-     * @doesNotPerformAssertions
-     * @group pgsql
-     *
-     * @link http://propel.phpdb.org/trac/ticket/425
-     *
-     * @return void
-     */
-    public function testMultipleFunctionInCriteriaOnPostgres()
-    {
-        try {
-            $c = new Criteria();
-            $c->setDistinct();
-            $c->addSelectColumn('substring(' . BookTableMap::COL_TITLE . " from position('Potter' in " . BookTableMap::COL_TITLE . ')) AS col');
-            BookQuery::create(null, $c)->find();
-        } catch (PropelException $x) {
-            $this->fail('Paring of nested functions failed: ' . $x->getMessage());
-        }
     }
 
     /**
@@ -156,115 +135,6 @@ class TableMapTest extends BookstoreTestBase
     /**
      * @return void
      */
-    public function testMssqlApplyLimitNoOffset()
-    {
-        $db = Propel::getServiceContainer()->getAdapter(BookTableMap::DATABASE_NAME);
-        if (!($db instanceof MssqlAdapter)) {
-            $this->markTestSkipped('Configured database vendor is not MsSQL');
-        }
-
-        $c = new Criteria(BookTableMap::DATABASE_NAME);
-        $c->addSelectColumn(BookTableMap::COL_ID);
-        $c->addSelectColumn(BookTableMap::COL_TITLE);
-        $c->addSelectColumn(PublisherTableMap::COL_NAME);
-        $c->addAsColumn('PublisherName', '(SELECT MAX(publisher.NAME) FROM publisher WHERE publisher.id = book.PUBLISHER_ID)');
-
-        $c->addJoin(BookTableMap::COL_PUBLISHER_ID, PublisherTableMap::COL_ID, Criteria::LEFT_JOIN);
-
-        $c->setOffset(0);
-        $c->setLimit(20);
-
-        $params = [];
-        $sql = $c->createSelectSql($params);
-
-        $expectedSql = 'SELECT TOP 20 book.id, book.title, publisher.NAME, (SELECT MAX(publisher.NAME) FROM publisher WHERE publisher.id = book.PUBLISHER_ID) AS PublisherName FROM book LEFT JOIN publisher ON (book.PUBLISHER_ID=publisher.id)';
-        $this->assertEquals($expectedSql, $sql);
-    }
-
-    /**
-     * @return void
-     */
-    public function testMssqlApplyLimitWithOffset()
-    {
-        $db = Propel::getServiceContainer()->getAdapter(BookTableMap::DATABASE_NAME);
-        if (!($db instanceof MssqlAdapter)) {
-            $this->markTestSkipped('Configured database vendor is not MsSQL');
-        }
-
-        $c = new Criteria(BookTableMap::DATABASE_NAME);
-        $c->addSelectColumn(BookTableMap::COL_ID);
-        $c->addSelectColumn(BookTableMap::COL_TITLE);
-        $c->addSelectColumn(PublisherTableMap::COL_NAME);
-        $c->addAsColumn('PublisherName', '(SELECT MAX(publisher.NAME) FROM publisher WHERE publisher.id = book.PUBLISHER_ID)');
-        $c->addJoin(BookTableMap::COL_PUBLISHER_ID, PublisherTableMap::COL_ID, Criteria::LEFT_JOIN);
-        $c->setOffset(20);
-        $c->setLimit(20);
-
-        $params = [];
-
-        $expectedSql = 'SELECT [book.id], [book.title], [publisher.NAME], [PublisherName] FROM (SELECT ROW_NUMBER() OVER(ORDER BY book.id) AS [RowNumber], book.id AS [book.id], book.title AS [book.title], publisher.NAME AS [publisher.NAME], (SELECT MAX(publisher.NAME) FROM publisher WHERE publisher.id = book.PUBLISHER_ID) AS [PublisherName] FROM book LEFT JOIN publisher ON (book.PUBLISHER_ID=publisher.id)) AS derivedb WHERE RowNumber BETWEEN 21 AND 40';
-        $sql = $c->createSelectSql($params);
-        $this->assertEquals($expectedSql, $sql);
-    }
-
-    /**
-     * @return void
-     */
-    public function testMssqlApplyLimitWithOffsetOrderByAggregate()
-    {
-        $db = Propel::getServiceContainer()->getAdapter(BookTableMap::DATABASE_NAME);
-        if (!($db instanceof MssqlAdapter)) {
-            $this->markTestSkipped('Configured database vendor is not MsSQL');
-        }
-
-        $c = new Criteria(BookTableMap::DATABASE_NAME);
-        $c->addSelectColumn(BookTableMap::COL_ID);
-        $c->addSelectColumn(BookTableMap::COL_TITLE);
-        $c->addSelectColumn(PublisherTableMap::COL_NAME);
-        $c->addAsColumn('PublisherName', '(SELECT MAX(publisher.NAME) FROM publisher WHERE publisher.id = book.PUBLISHER_ID)');
-        $c->addJoin(BookTableMap::COL_PUBLISHER_ID, PublisherTableMap::COL_ID, Criteria::LEFT_JOIN);
-        $c->addDescendingOrderByColumn('PublisherName');
-        $c->setOffset(20);
-        $c->setLimit(20);
-
-        $params = [];
-
-        $expectedSql = 'SELECT [book.id], [book.title], [publisher.NAME], [PublisherName] FROM (SELECT ROW_NUMBER() OVER(ORDER BY (SELECT MAX(publisher.NAME) FROM publisher WHERE publisher.id = book.PUBLISHER_ID) DESC) AS [RowNumber], book.id AS [book.id], book.title AS [book.title], publisher.NAME AS [publisher.NAME], (SELECT MAX(publisher.NAME) FROM publisher WHERE publisher.id = book.PUBLISHER_ID) AS [PublisherName] FROM book LEFT JOIN publisher ON (book.PUBLISHER_ID=publisher.id)) AS derivedb WHERE RowNumber BETWEEN 21 AND 40';
-        $sql = $c->createSelectSql($params);
-        $this->assertEquals($expectedSql, $sql);
-    }
-
-    /**
-     * @return void
-     */
-    public function testMssqlApplyLimitWithOffsetMultipleOrderBy()
-    {
-        $db = Propel::getServiceContainer()->getAdapter(BookTableMap::DATABASE_NAME);
-        if (!($db instanceof MssqlAdapter)) {
-            $this->markTestSkipped('Configured database vendor is not MsSQL');
-        }
-
-        $c = new Criteria(BookTableMap::DATABASE_NAME);
-        $c->addSelectColumn(BookTableMap::COL_ID);
-        $c->addSelectColumn(BookTableMap::COL_TITLE);
-        $c->addSelectColumn(PublisherTableMap::COL_NAME);
-        $c->addAsColumn('PublisherName', '(SELECT MAX(publisher.NAME) FROM publisher WHERE publisher.id = book.PUBLISHER_ID)');
-        $c->addJoin(BookTableMap::COL_PUBLISHER_ID, PublisherTableMap::COL_ID, Criteria::LEFT_JOIN);
-        $c->addDescendingOrderByColumn('PublisherName');
-        $c->addAscendingOrderByColumn(BookTableMap::COL_TITLE);
-        $c->setOffset(20);
-        $c->setLimit(20);
-
-        $params = [];
-
-        $expectedSql = 'SELECT [book.id], [book.title], [publisher.NAME], [PublisherName] FROM (SELECT ROW_NUMBER() OVER(ORDER BY (SELECT MAX(publisher.NAME) FROM publisher WHERE publisher.id = book.PUBLISHER_ID) DESC, book.title ASC) AS [RowNumber], book.id AS [book.id], book.title AS [book.title], publisher.NAME AS [publisher.NAME], (SELECT MAX(publisher.NAME) FROM publisher WHERE publisher.id = book.PUBLISHER_ID) AS [PublisherName] FROM book LEFT JOIN publisher ON (book.PUBLISHER_ID=publisher.id)) AS derivedb WHERE RowNumber BETWEEN 21 AND 40';
-        $sql = $c->createSelectSql($params);
-        $this->assertEquals($expectedSql, $sql);
-    }
-
-    /**
-     * @return void
-     */
     public function testDoDeleteNoCondition()
     {
         $this->expectException(PropelException::class);
@@ -329,11 +199,7 @@ class TableMapTest extends BookstoreTestBase
         $c->add('b.title', 'War And Peace');
         $c->doDelete($con);
 
-        if ($this->isDb('pgsql')) {
-            $expectedSQL = $this->getSql("DELETE FROM book AS b WHERE b.title='War And Peace'");
-        } else {
-            $expectedSQL = $this->getSql("DELETE b FROM book AS b WHERE b.title='War And Peace'");
-        }
+        $expectedSQL = $this->getSql("DELETE b FROM book AS b WHERE b.title='War And Peace'");
 
         $this->assertEquals($expectedSQL, $con->getLastExecutedQuery(), 'doDelete() accepts a Criteria with a table alias');
     }

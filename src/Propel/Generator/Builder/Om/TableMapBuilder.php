@@ -13,7 +13,6 @@ use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Model\Table;
-use Propel\Generator\Platform\PgsqlPlatform;
 use Propel\Generator\Platform\PlatformInterface;
 use Propel\Runtime\ActiveQuery\ColumnResolver\ColumnExpression\LocalColumnExpression;
 use Propel\Runtime\ActiveQuery\Criteria;
@@ -377,7 +376,7 @@ class $className extends TableMap
             }
             $columnConstant = $col->getConstantName();
             $columnConstantFq = $this->getColumnConstant($col, 'self');
-            $valueSetConstants = array_map([$this, 'getValueSetConstant'], $col->getValueSet());
+            $valueSetConstants = array_map($this->getValueSetConstant(...), $col->getValueSet());
             $indent = '            ';
             $values = array_map(fn ($valueSetConstant) => "\n{$indent}self::{$columnConstant}_{$valueSetConstant},", $valueSetConstants);
             $valuesCsv = implode('', $values);
@@ -976,10 +975,7 @@ class $className extends TableMap
             $script .= "
         $varName = \$row[\$indexType === TableMap::TYPE_NUM ? $index + \$offset : static::translateFieldName('$phpName', TableMap::TYPE_PHPNAME, \$indexType)];";
 
-            if (
-                $column->getType() === PropelTypes::OBJECT
-                || ($this->getPlatform() instanceof PgsqlPlatform && $column->getType() === PropelTypes::UUID_BINARY )
-            ) {
+            if ($column->getType() === PropelTypes::OBJECT) {
                 $this->declareGlobalFunction('is_resource', 'stream_get_contents', 'is_callable');
                 $script .= "
         if (is_resource($varName)) {

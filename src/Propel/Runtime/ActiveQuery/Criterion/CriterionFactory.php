@@ -34,33 +34,23 @@ class CriterionFactory
             return new RawCriterion($criteria, $column, $value, $comparison);
         }
 
-        switch ($comparison) {
-            case Criteria::CUSTOM:
-                // custom expression with no parameter binding
-                // something like $c->add(BookTableMap::TITLE, "CONCAT(book.TITLE, 'bar') = 'foobar'", Criteria::CUSTOM);
-                return new CustomCriterion($criteria, $value);
-            case Criteria::IN:
-            case Criteria::NOT_IN:
-                // table.column IN (?, ?) or table.column NOT IN (?, ?)
-                // something like $c->add(BookTableMap::TITLE, array('foo', 'bar'), Criteria::IN);
-                return new InCriterion($criteria, $column, $value, $comparison);
-            case Criteria::LIKE:
-            case Criteria::NOT_LIKE:
-            case Criteria::ILIKE:
-            case Criteria::NOT_ILIKE:
-                // table.column LIKE ? or table.column NOT LIKE ?  (or ILIKE for Postgres)
-                // something like $c->add(BookTableMap::TITLE, 'foo%', Criteria::LIKE);
-                return new LikeCriterion($criteria, $column, $value, $comparison);
-            case Criteria::BINARY_NONE:
-            case Criteria::BINARY_ALL:
-                // table.column & ? = 0 (Similar to  "NOT IN")
-                // something like $c->add(BookTableMap::SOME_ARRAY_VAR, 26, Criteria::BINARY_NONE);
-                return new BinaryCriterion($criteria, $column, $value, $comparison);
-            default:
-                // simple comparison
-                // something like $c->add(BookTableMap::PRICE, 12, Criteria::GREATER_THAN);
-                return new BasicCriterion($criteria, $column, $value, $comparison);
-        }
+        return match ($comparison) {
+            // custom expression with no parameter binding
+            // something like $c->add(BookTableMap::TITLE, "CONCAT(book.TITLE, 'bar') = 'foobar'", Criteria::CUSTOM);
+            Criteria::CUSTOM => new CustomCriterion($criteria, $value),
+            // table.column IN (?, ?) or table.column NOT IN (?, ?)
+            // something like $c->add(BookTableMap::TITLE, array('foo', 'bar'), Criteria::IN);
+            Criteria::IN, Criteria::NOT_IN => new InCriterion($criteria, $column, $value, $comparison),
+            // table.column LIKE ? or table.column NOT LIKE ?
+            // something like $c->add(BookTableMap::TITLE, 'foo%', Criteria::LIKE);
+            Criteria::LIKE, Criteria::NOT_LIKE, Criteria::ILIKE, Criteria::NOT_ILIKE => new LikeCriterion($criteria, $column, $value, $comparison),
+            // table.column & ? = 0 (Similar to  "NOT IN")
+            // something like $c->add(BookTableMap::SOME_ARRAY_VAR, 26, Criteria::BINARY_NONE);
+            Criteria::BINARY_NONE, Criteria::BINARY_ALL => new BinaryCriterion($criteria, $column, $value, $comparison),
+            // simple comparison
+            // something like $c->add(BookTableMap::PRICE, 12, Criteria::GREATER_THAN);
+            default => new BasicCriterion($criteria, $column, $value, $comparison),
+        };
     }
 
     /**
@@ -77,16 +67,11 @@ class CriterionFactory
         ?string $comparison,
         Criteria $innerQuery
     ): AbstractInnerQueryCriterion {
-        if ($comparison === null) {
-            $comparison = Criteria::IN;
-        }
+        $comparison ??= Criteria::IN;
 
-        switch ($comparison) {
-            case ExistsQueryCriterion::TYPE_EXISTS:
-            case ExistsQueryCriterion::TYPE_NOT_EXISTS:
-                return new ExistsQueryCriterion($criteria, null, $comparison, $innerQuery);
-            default:
-                return new ColumnToQueryOperatorCriterion($criteria, $column, $comparison, $innerQuery);
-        }
+        return match ($comparison) {
+            ExistsQueryCriterion::TYPE_EXISTS, ExistsQueryCriterion::TYPE_NOT_EXISTS => new ExistsQueryCriterion($criteria, null, $comparison, $innerQuery),
+            default => new ColumnToQueryOperatorCriterion($criteria, $column, $comparison, $innerQuery),
+        };
     }
 }

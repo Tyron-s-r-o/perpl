@@ -14,7 +14,7 @@ use Propel\Runtime\Map\ColumnMap;
 use function class_exists;
 use function is_resource;
 use function rewind;
-use function strpos;
+use function str_contains;
 use function strtr;
 
 /**
@@ -211,7 +211,7 @@ class MysqlAdapter extends PdoAdapter implements SqlAdapterInterface
     protected function prepareParams(array $params): array
     {
         if (isset($params['settings']['charset'])) {
-            if (strpos($params['dsn'], ';charset=') === false) {
+            if (!str_contains($params['dsn'], ';charset=')) {
                 $params['dsn'] .= ';charset=' . $params['settings']['charset'];
                 unset($params['settings']['charset']);
             }

@@ -84,7 +84,7 @@ abstract class AbstractCriterion extends ClauseList implements ColumnFilterInter
         $this->query = $outer;
         $this->value = $value;
         $this->setColumn($column);
-        $this->comparison = ($comparison === null) ? Criteria::EQUAL : $comparison;
+        $this->comparison = $comparison ?? Criteria::EQUAL;
         $this->init($outer);
     }
 
@@ -100,7 +100,7 @@ abstract class AbstractCriterion extends ClauseList implements ColumnFilterInter
         try {
             $db = Perpl::getServiceContainer()->getAdapter($criteria->getDbName());
             $this->setAdapter($db);
-        } catch (Exception $e) {
+        } catch (Exception) {
             // we are only doing this to allow easier debugging, so
             // no need to throw up the exception, just make note of it.
             Perpl::log('Could not get a AdapterInterface, sql may be wrong', Perpl::LOG_ERR);

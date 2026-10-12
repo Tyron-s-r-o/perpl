@@ -263,9 +263,7 @@ DROP TABLE %s;
 
         foreach ($newTable->getColumns() as $col) {
             if ($originTable->hasColumn($col)) {
-                if (!isset($fieldMap[$col->getName()])) {
-                    $fieldMap[$col->getName()] = $col->getName();
-                }
+                $fieldMap[$col->getName()] ??= $col->getName();
             }
         }
 

@@ -106,13 +106,13 @@ abstract class AbstractParser
     /**
      * Factory for getting an instance of a subclass of AbstractParser
      *
-     * @param string $type Parser type, amon 'XML', 'YAML', 'JSON', and 'CSV'
+     * @param string $type Parser type, only 'JSON' is available
      *
      * @throws \Propel\Runtime\Exception\FileNotFoundException
      *
      * @return self A PropelParser subclass instance
      */
-    public static function getParser(string $type = 'XML'): self
+    public static function getParser(string $type = 'JSON'): self
     {
         /** @phpstan-var class-string<\Propel\Runtime\Parser\AbstractParser> $class */
         $class = sprintf('\Propel\Runtime\Parser\%sParser', ucfirst(strtolower($type)));

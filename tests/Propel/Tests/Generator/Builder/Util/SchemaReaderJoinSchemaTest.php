@@ -9,7 +9,7 @@
 namespace Propel\Tests\Generator\Builder\Util;
 
 use Propel\Generator\Builder\Util\SchemaReader;
-use Propel\Generator\Platform\PgsqlPlatform;
+use Propel\Generator\Platform\SqlitePlatform;
 use Propel\Tests\TestCase;
 
 class SchemaReaderJoinSchemaTest extends TestCase
@@ -37,8 +37,8 @@ class SchemaReaderJoinSchemaTest extends TestCase
 </app-data>
 EOF;
 
-        $fooReader = new SchemaReader(new PgsqlPlatform());
-        $barReader = new SchemaReader(new PgsqlPlatform());
+        $fooReader = new SchemaReader(new SqlitePlatform());
+        $barReader = new SchemaReader(new SqlitePlatform());
 
         $fooSchema = $fooReader->parseFile($this->getSchemaFile('fooSchema.xml'));
         $barSchema = $barReader->parseFile($this->getSchemaFile('barSchema.xml'));

@@ -221,7 +221,7 @@ class DatabaseMap
      */
     public function registerTableMapClasses(array $tableMapClasses): void
     {
-        array_map([$this, 'registerTableMapClass'], $tableMapClasses);
+        array_map($this->registerTableMapClass(...), $tableMapClasses);
     }
 
     /**
@@ -301,9 +301,7 @@ class DatabaseMap
         }
 
         /** @var \Propel\Runtime\Map\TableMap|class-string<\Propel\Runtime\Map\TableMap> $tableMapOrTableMapClassName */
-        $tableMapOrTableMapClassName = (isset($this->tablesByPhpName[$phpName]))
-            ? $this->tablesByPhpName[$phpName]
-            : $this->determineTableMapClassNameByPhpName($phpName);
+        $tableMapOrTableMapClassName = $this->tablesByPhpName[$phpName] ?? $this->determineTableMapClassNameByPhpName($phpName);
 
         if (is_string($tableMapOrTableMapClassName)) {
             return $this->addTableFromMapClass($tableMapOrTableMapClassName);

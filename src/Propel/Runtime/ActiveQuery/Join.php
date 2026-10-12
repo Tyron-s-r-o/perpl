@@ -9,6 +9,7 @@ use Propel\Runtime\ActiveQuery\FilterExpression\FilterFactory;
 use Propel\Runtime\ActiveQuery\Join as ActiveQueryJoin;
 use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Exception\LogicException;
+use Stringable;
 use function count;
 use function explode;
 use function implode;
@@ -24,7 +25,7 @@ use function var_export;
  * table_a LEFT JOIN table_b ON table_a.id = table_b.a_id
  * </pre>
  */
-class Join
+class Join implements Stringable
 {
     // default comparison type
     /**

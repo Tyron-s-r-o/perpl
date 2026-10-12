@@ -187,7 +187,7 @@ abstract class AbstractFilter extends ClauseList implements ColumnFilterInterfac
             return $params[$i++]['value'];
         };
 
-        return preg_replace_callback('/:p\d+/', $replacer, $statement);
+        return (string)preg_replace_callback('/:p\d+/', $replacer, $statement);
     }
 
     /**

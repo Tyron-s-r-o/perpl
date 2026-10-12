@@ -219,7 +219,7 @@ class StatementWrapper implements StatementInterface, IteratorAggregate
             $sql = $this->getExecutedQueryString($inputParameters);
             $args = ($inputParameters !== null) ? [$inputParameters] : [];
 
-            return $this->connection->callUserFunctionWithLogging([$this->statement, 'execute'], $args, $sql);
+            return $this->connection->callUserFunctionWithLogging($this->statement->execute(...), $args, $sql);
         }
 
         return $this->statement->execute($inputParameters);

@@ -157,7 +157,7 @@ class SetColumnConverter
         }
         $items = explode(',', $itemsCsv);
 
-        return array_filter(array_map('trim', $items));
+        return array_filter(array_map(trim(...), $items));
     }
 
     /**

@@ -8,11 +8,6 @@ addAttributes():
      */
     protected TeamCollection|null $collLeTeams = null;
 
-    /**
-     * If $collLeTeams contains all objects in LeTeam relation.
-     */
-    protected bool $collLeTeamsPartial = false;
-
 
 addOnReloadCode():
 
@@ -20,23 +15,16 @@ addOnReloadCode():
 
 addScheduledForDeletionAttribute():
 
-    /**
-     * Items of LeTeams relation marked for deletion.
-     *
-     * @var \Propel\Runtime\Collection\ObjectCollection<\Team>|null
-     */
-    protected ObjectCollection|null $leTeamsScheduledForDeletion = null;
-
 
 addDeleteScheduledItemsCode():
 
-        if ($this->leTeamsScheduledForDeletion !== null) {
-            if (!$this->leTeamsScheduledForDeletion->isEmpty()) {
-                foreach ($this->leTeamsScheduledForDeletion as $leTeam) {
+        if (isset($this->deletionsByCollection['leTeams'])) {
+            if (!$this->deletionsByCollection['leTeams']->isEmpty()) {
+                foreach ($this->deletionsByCollection['leTeams'] as $leTeam) {
                     // need to save related object because we set the relation to null
                     $leTeam->save($con);
                 }
-                $this->leTeamsScheduledForDeletion = null;
+                unset($this->deletionsByCollection['leTeams']);
             }
         }
 
@@ -90,7 +78,7 @@ addMethods():
      */
     public function resetPartialLeTeams(bool $isPartial = true): void
     {
-        $this->collLeTeamsPartial = $isPartial;
+        $this->partialFlagByCollection['collLeTeams'] = $isPartial;
     }
 
     /**
@@ -124,7 +112,7 @@ addMethods():
      */
     public function getLeTeams(?Criteria $criteria = null, ?ConnectionInterface $con = null): TeamCollection
     {
-        $partial = $this->collLeTeamsPartial && !$this->isNew();
+        $partial = ($this->partialFlagByCollection['collLeTeams'] ?? false) && !$this->isNew();
         if ($this->collLeTeams && !$criteria && !$partial) {
             return $this->collLeTeams;
         }
@@ -148,7 +136,7 @@ addMethods():
             ->findObjects($con);
 
         if ($criteria) {
-            if ($this->collLeTeamsPartial !== false && count($collLeTeams)) {
+            if (($this->partialFlagByCollection['collLeTeams'] ?? null) !== false && count($collLeTeams)) {
                 $this->initLeTeams(false);
 
                 foreach ($collLeTeams as $obj) {
@@ -157,13 +145,13 @@ addMethods():
                     }
                 }
 
-                $this->collLeTeamsPartial = true;
+                $this->partialFlagByCollection['collLeTeams'] = true;
             }
 
             return $collLeTeams;
         }
 
-        if ($this->collLeTeamsPartial && $this->collLeTeams) {
+        if (($this->partialFlagByCollection['collLeTeams'] ?? false) && $this->collLeTeams) {
             foreach ($this->collLeTeams as $obj) {
                 if ($obj->isNew()) {
                     $collLeTeams[] = $obj;
@@ -172,7 +160,7 @@ addMethods():
         }
 
         $this->collLeTeams = $collLeTeams;
-        $this->collLeTeamsPartial = false;
+        $this->partialFlagByCollection['collLeTeams'] = false;
 
         return $this->collLeTeams;
     }
@@ -193,7 +181,7 @@ addMethods():
     {
         $leTeamsToDelete = $this->getLeTeams(null, $con)->diff($leTeams);
 
-        $this->leTeamsScheduledForDeletion = $leTeamsToDelete;
+        $this->deletionsByCollection['leTeams'] = $leTeamsToDelete;
 
         foreach ($leTeamsToDelete as $leTeamRemoved) {
             $leTeamRemoved->setUser(null);
@@ -204,7 +192,7 @@ addMethods():
             $this->addLeTeam($leTeam);
         }
 
-        $this->collLeTeamsPartial = false;
+        $this->partialFlagByCollection['collLeTeams'] = false;
         $this->collLeTeams = $leTeams instanceof TeamCollection
             ? $leTeams : new TeamCollection($leTeams->getData());
 
@@ -222,7 +210,7 @@ addMethods():
      */
     public function countLeTeams(?Criteria $criteria = null, bool $distinct = false, ?ConnectionInterface $con = null): int
     {
-        $partial = $this->collLeTeamsPartial && !$this->isNew();
+        $partial = ($this->partialFlagByCollection['collLeTeams'] ?? false) && !$this->isNew();
         if ($this->collLeTeams === null || $criteria !== null || $partial) {
             if ($this->isNew() && $this->collLeTeams === null) {
                 return 0;
@@ -257,14 +245,15 @@ addMethods():
     {
         if ($this->collLeTeams === null) {
             $this->initLeTeams();
-            $this->collLeTeamsPartial = true;
+            $this->partialFlagByCollection['collLeTeams'] = true;
         }
 
         if (!$this->collLeTeams->contains($childTeam)) {
             $this->doAddLeTeam($childTeam);
 
-            if ($this->leTeamsScheduledForDeletion && $this->leTeamsScheduledForDeletion->contains($childTeam)) {
-                $this->leTeamsScheduledForDeletion->remove($this->leTeamsScheduledForDeletion->search($childTeam));
+            $scheduledForDeletion = $this->deletionsByCollection['leTeams'] ?? null;
+            if ($scheduledForDeletion && $scheduledForDeletion->contains($childTeam)) {
+                $scheduledForDeletion->remove($scheduledForDeletion->search($childTeam));
             }
         }
 
@@ -293,11 +282,11 @@ addMethods():
         if ($this->getLeTeams()->contains($leTeam)) {
             $pos = $this->collLeTeams->search($leTeam);
             $this->collLeTeams->remove($pos);
-            if ($this->leTeamsScheduledForDeletion === null) {
-                $this->leTeamsScheduledForDeletion = clone $this->collLeTeams;
-                $this->leTeamsScheduledForDeletion->clear();
+            if (!isset($this->deletionsByCollection['leTeams'])) {
+                $this->deletionsByCollection['leTeams'] = clone $this->collLeTeams;
+                $this->deletionsByCollection['leTeams']->clear();
             }
-            $this->leTeamsScheduledForDeletion->append($leTeam);
+            $this->deletionsByCollection['leTeams']->append($leTeam);
             $leTeam->setUser(null);
         }
 

@@ -264,12 +264,12 @@ class TableTest extends ModelTestCase
         $database
             ->expects($this->once())
             ->method('getDefaultStringFormat')
-            ->will($this->returnValue('XML'));
+            ->will($this->returnValue('JSON'));
 
         $table = new Table('');
         $table->setDatabase($database);
 
-        $this->assertSame('XML', $table->getDefaultStringFormat());
+        $this->assertSame('JSON', $table->getDefaultStringFormat());
     }
 
     /**
@@ -287,10 +287,7 @@ class TableTest extends ModelTestCase
     public static function provideStringFormats()
     {
         return [
-            ['XML'],
-            ['YAML'],
             ['JSON'],
-            ['CSV'],
         ];
     }
 
@@ -952,7 +949,7 @@ class TableTest extends ModelTestCase
             'defaultIdMethod' => 'native',
             'defaultPhpNamingMethod' => 'underscore',
             'tablePrefix' => 'acme_',
-            'defaultStringFormat' => 'XML',
+            'defaultStringFormat' => 'JSON',
         ]);
 
         $table = new Table('');

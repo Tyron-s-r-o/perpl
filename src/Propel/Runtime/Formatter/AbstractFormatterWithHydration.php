@@ -103,9 +103,7 @@ abstract class AbstractFormatterWithHydration extends AbstractFormatter
             // we hydrate the main object even in case of a one-to-many relationship
             // in order to get the $col variable increased anyway
             $secondaryObject = $this->getSingleObjectFromRow($row, $class, $col);
-            if (!isset($this->alreadyHydratedObjects[$relAlias][$key])) {
-                $this->alreadyHydratedObjects[$relAlias][$key] = $secondaryObject->isPrimaryKeyNull() ? [] : $secondaryObject->toArray();
-            }
+            $this->alreadyHydratedObjects[$relAlias][$key] ??= $secondaryObject->isPrimaryKeyNull() ? [] : $secondaryObject->toArray();
 
             if ($modelWith->isPrimary()) {
                 $arrayToAugment = &$this->alreadyHydratedObjects[$this->class][$mainKey];

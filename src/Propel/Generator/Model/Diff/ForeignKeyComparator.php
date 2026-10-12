@@ -85,7 +85,7 @@ class ForeignKeyComparator
         sort($array1);
         sort($array2);
 
-        return array_map('strtolower', $array1) === array_map('strtolower', $array2);
+        return array_map(strtolower(...), $array1) === array_map(strtolower(...), $array2);
     }
 
     /**

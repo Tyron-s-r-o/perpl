@@ -38,6 +38,11 @@ abstract class AbstractFormatter
     protected $tableMap;
 
     /**
+     * TableMap instance of the formatted model, resolved on first use.
+     */
+    private ?TableMap $resolvedTableMap = null;
+
+    /**
      * @var array<\Propel\Runtime\ActiveQuery\ModelWith>
      */
     protected $with = [];
@@ -109,6 +114,7 @@ abstract class AbstractFormatter
     public function init(BaseModelCriteria $criteria, ?DataFetcherInterface $dataFetcher = null)
     {
         $this->dbName = $criteria->getDbName();
+        $this->resolvedTableMap = null;
         /** @var class-string<RowFormat> $modelClassName */
         $modelClassName = $criteria->getModelName();
         if (!$modelClassName) {
@@ -135,6 +141,7 @@ abstract class AbstractFormatter
     public function setDbName(string $dbName): void
     {
         $this->dbName = $dbName;
+        $this->resolvedTableMap = null;
     }
 
     /**
@@ -156,6 +163,7 @@ abstract class AbstractFormatter
     {
         $this->class = $class;
         $this->tableMap = $class::TABLE_MAP;
+        $this->resolvedTableMap = null;
     }
 
     /**
@@ -298,7 +306,7 @@ abstract class AbstractFormatter
      */
     public function getTableMap(): TableMap
     {
-        return Perpl::getServiceContainer()->getDatabaseMap($this->dbName)->getTableByPhpName((string)$this->class);
+        return $this->resolvedTableMap ??= Perpl::getServiceContainer()->getDatabaseMap($this->dbName)->getTableByPhpName((string)$this->class);
     }
 
     /**

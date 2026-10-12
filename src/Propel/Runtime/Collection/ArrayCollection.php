@@ -37,9 +37,7 @@ class ArrayCollection extends Collection
         if (!method_exists($this->getFullyQualifiedModel(), 'save')) {
             throw new ReadOnlyModelException('Cannot save objects on a read-only model');
         }
-        if ($con === null) {
-            $con = $this->getWriteConnection();
-        }
+        $con ??= $this->getWriteConnection();
         $con->transaction(function () use ($con): void {
             $obj = $this->getWorkerObject();
             foreach ($this as $element) {
@@ -65,9 +63,7 @@ class ArrayCollection extends Collection
         if (!method_exists($this->getFullyQualifiedModel(), 'delete')) {
             throw new ReadOnlyModelException('Cannot delete objects on a read-only model');
         }
-        if ($con === null) {
-            $con = $this->getWriteConnection();
-        }
+        $con ??= $this->getWriteConnection();
         $con->transaction(function () use ($con): void {
             foreach ($this as $element) {
                 $obj = $this->getWorkerObject();

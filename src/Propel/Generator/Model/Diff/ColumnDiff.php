@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Propel\Generator\Model\Diff;
 
 use Propel\Generator\Model\Column;
+use Stringable;
 use function array_reverse;
 use function json_encode;
 use function sprintf;
@@ -14,7 +15,7 @@ use function sprintf;
  * Heavily inspired by Doctrine2's Migrations
  * (see http://github.com/doctrine/dbal/tree/master/lib/Doctrine/DBAL/Schema/)
  */
-class ColumnDiff
+class ColumnDiff implements Stringable
 {
     /**
      * An associative array of modified properties.

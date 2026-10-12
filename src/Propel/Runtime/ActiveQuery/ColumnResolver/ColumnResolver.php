@@ -21,7 +21,7 @@ use function count;
 use function explode;
 use function implode;
 use function sprintf;
-use function strpos;
+use function str_contains;
 
 class ColumnResolver
 {
@@ -83,7 +83,7 @@ class ColumnResolver
             return new RemoteColumnExpression($sourceQuery, null, $columnIdentifier);
         }
 
-        if (strpos($columnIdentifier, '.') === false) {
+        if (!str_contains($columnIdentifier, '.')) {
             $prefix = (string)$sourceQuery->getModelAliasOrName();
         } else {
             // $prefix could be either class name or table name

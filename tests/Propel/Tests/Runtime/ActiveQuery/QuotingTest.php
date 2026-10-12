@@ -42,11 +42,7 @@ class QuotingTest extends TestCaseFixturesDatabase
 
         $this->assertGreaterThan(0, $group->getId());
 
-        if ($this->runningOnPostgreSQL()) {
-            $expected = $this->getSql(sprintf("INSERT INTO `group` (`id`, `title`, `as`) VALUES (%s, 'Test Group', 3)", $group->getId()));
-        } else {
-            $expected = $this->getSql("INSERT INTO `group` (`id`, `title`, `as`) VALUES (NULL, 'Test Group', 3)");
-        }
+        $expected = $this->getSql("INSERT INTO `group` (`id`, `title`, `as`) VALUES (NULL, 'Test Group', 3)");
         $this->assertEquals($expected, $this->getLastQuery());
     }
 
@@ -140,12 +136,8 @@ class QuotingTest extends TestCaseFixturesDatabase
         ->having('g.Id > 0')
         ->find();
 
-        if ($this->runningOnPostgreSQL()) {
-            $expected = $this->getSql('SELECT g.id, g.name, g.type_id FROM quoting_author g GROUP BY g.id,g.name,g.type_id HAVING g.id > 0');
-        } else {
-            // note that this only works with MySQL because the query return no data, otherwise an "Expression of SELECT list is not in GROUP BY" error would be thrown
-            $expected = $this->getSql('SELECT g.id, g.name, g.type_id FROM quoting_author g GROUP BY g.id HAVING g.id > 0');
-        }
+        // note that this only works with MySQL because the query return no data, otherwise an "Expression of SELECT list is not in GROUP BY" error would be thrown
+        $expected = $this->getSql('SELECT g.id, g.name, g.type_id FROM quoting_author g GROUP BY g.id HAVING g.id > 0');
         $this->assertEquals($expected, $this->getLastQuery());
 
         GroupQuery::create('g')
@@ -178,11 +170,7 @@ class QuotingTest extends TestCaseFixturesDatabase
         ->having('group.As > 0')
         ->find($con);
 
-        if ($this->runningOnPostgreSQL()) {
-            $expected = $this->getSql('SELECT `group`.`id`, `group`.`title`, `group`.`by`, `group`.`as`, `group`.`author_id` FROM `group` GROUP BY `group`.`as`,`group`.`id`,`group`.`title`,`group`.`by`,`group`.`author_id` HAVING `group`.`as` > 0');
-        } else {
-            $expected = $this->getSql('SELECT `group`.`id`, `group`.`title`, `group`.`by`, `group`.`as`, `group`.`author_id` FROM `group` GROUP BY `group`.`as` HAVING `group`.`as` > 0');
-        }
+        $expected = $this->getSql('SELECT `group`.`id`, `group`.`title`, `group`.`by`, `group`.`as`, `group`.`author_id` FROM `group` GROUP BY `group`.`as` HAVING `group`.`as` > 0');
         $this->assertEquals($expected, $this->getLastQuery());
     }
 }

@@ -5,12 +5,11 @@ declare(strict_types = 1);
 namespace Propel\Runtime\ActiveQuery\Criterion;
 
 use Propel\Runtime\ActiveQuery\Criteria;
-use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use function count;
 
 /**
  * Specialized Criterion used for LIKE expressions
- * e.g. table.column LIKE ? or table.column NOT LIKE ? (or ILIKE for Postgres)
+ * e.g. table.column LIKE ? or table.column NOT LIKE ?
  */
 class LikeCriterion extends AbstractCriterion
 {
@@ -69,27 +68,16 @@ class LikeCriterion extends AbstractCriterion
     {
         $field = ($this->table === null) ? $this->column : $this->table . '.' . $this->column;
         $adapter = $this->getAdapter();
-        // If selection is case insensitive use ILIKE for PostgreSQL or SQL
-        // UPPER() function on column name for other databases.
+        // If selection is case insensitive use SQL UPPER() function on column name and criteria.
         if ($this->ignoreStringCase) {
-            if ($adapter instanceof PgsqlAdapter) {
-                if ($this->comparison === Criteria::LIKE) {
-                    $this->comparison = Criteria::ILIKE;
-                } elseif ($this->comparison === Criteria::NOT_LIKE) {
-                    $this->comparison = Criteria::NOT_ILIKE;
-                }
-            } else {
-                $field = $adapter->ignoreCase($field);
-            }
+            $field = $adapter->ignoreCase($field);
         }
 
         $params[] = ['table' => $this->realtable, 'column' => $this->column, 'value' => $this->value];
 
         $sb .= $field . $this->comparison;
 
-        // If selection is case insensitive use SQL UPPER() function
-        // on criteria or, if Postgres we are using ILIKE, so not necessary.
-        if ($this->ignoreStringCase && !($adapter instanceof PgsqlAdapter)) {
+        if ($this->ignoreStringCase) {
             $sb .= $adapter->ignoreCase(':p' . count($params));
         } else {
             $sb .= ':p' . count($params);

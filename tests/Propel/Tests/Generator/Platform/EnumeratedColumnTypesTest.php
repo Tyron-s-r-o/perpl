@@ -15,10 +15,7 @@ use Propel\Generator\Config\QuickGeneratorConfig;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Platform\DefaultPlatform;
-use Propel\Generator\Platform\MssqlPlatform;
 use Propel\Generator\Platform\MysqlPlatform;
-use Propel\Generator\Platform\OraclePlatform;
-use Propel\Generator\Platform\PgsqlPlatform;
 use Propel\Generator\Platform\PlatformInterface;
 use Propel\Generator\Platform\SqlitePlatform;
 use Propel\Tests\Helpers\ColorsBackedEnum;
@@ -31,9 +28,6 @@ class EnumeratedColumnTypesTest extends TestCase
     {
         $platformsWithoutNativeType = [
             DefaultPlatform::class,
-            MssqlPlatform::class,
-            OraclePlatform::class,
-            PgsqlPlatform::class,
             SqlitePlatform::class,
         ];
 

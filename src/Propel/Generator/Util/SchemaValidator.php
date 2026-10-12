@@ -69,9 +69,7 @@ class SchemaValidator
             /** @var array<string> $list */
             $list = &$phpNames;
             if ($table->getNamespace()) {
-                if (!isset($namespaces[$table->getNamespace()])) {
-                    $namespaces[$table->getNamespace()] = [];
-                }
+                $namespaces[$table->getNamespace()] ??= [];
 
                 $list = &$namespaces[$table->getNamespace()];
             }

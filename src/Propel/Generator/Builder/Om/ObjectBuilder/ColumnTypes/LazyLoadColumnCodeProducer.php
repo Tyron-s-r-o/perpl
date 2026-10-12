@@ -6,9 +6,7 @@ namespace Propel\Generator\Builder\Om\ObjectBuilder\ColumnTypes;
 
 use LogicException;
 use Propel\Generator\Config\AbstractGeneratorConfig;
-use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Model\Table;
-use Propel\Generator\Platform\SqlsrvPlatform;
 
 class LazyLoadColumnCodeProducer extends ColumnCodeProducer
 {
@@ -284,7 +282,6 @@ class LazyLoadColumnCodeProducer extends ColumnCodeProducer
     protected function addLazyLoaderBody(string &$script): void
     {
         $this->declareGlobalFunction('current', 'is_bool', 'current');
-        $platform = $this->getPlatform();
         $isLoadedAttribute = $this->getIsLoadedAttributeName();
         $columnConstant = $this->builder->getColumnConstant($this->column);
         $queryClassName = $this->getQueryClassName();
@@ -297,18 +294,8 @@ class LazyLoadColumnCodeProducer extends ColumnCodeProducer
         try {
             \$dataFetcher = {$queryClassName}::create(null, \$c)->fetch(\$con);";
 
-        if (!$platform instanceof SqlsrvPlatform || $this->column->getType() !== PropelTypes::BLOB) {
-            $script .= "
+        $script .= "
             \$row = \$dataFetcher->fetch();";
-        } else {
-            // pdo_sqlsrv driver requires the use of PDOStatement::bindColumn() or a hex string will be returned
-            $script .= "
-            if (\$dataFetcher instanceof PDODataFetcher) {
-                \$param = [0 => null];
-                \$dataFetcher->bindColumn(1, \$param[0], PDO::PARAM_LOB, 0, PDO::SQLSRV_ENCODING_BINARY);
-            }
-            \$row = \$dataFetcher->fetch(PDO::FETCH_BOUND);";
-        }
 
         $script .= "
             \$dataFetcher->close();

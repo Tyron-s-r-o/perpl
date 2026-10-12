@@ -24,6 +24,9 @@ class IconvTransliterationTest extends TestCase
         if (!function_exists('iconv')) {
             $this->markTestSkipped('iconv() is not available.');
         }
+        if (ICONV_IMPL !== 'glibc') {
+            $this->markTestSkipped('Expected transliterations are those of glibc, found ' . ICONV_IMPL);
+        }
 
         $currentLocale = setlocale(LC_CTYPE, 0);
         if (in_array($currentLocale, ['C', 'POSIX'], true)) {

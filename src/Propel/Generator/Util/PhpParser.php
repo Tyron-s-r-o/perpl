@@ -7,8 +7,8 @@ namespace Propel\Generator\Util;
 use function define;
 use function defined;
 use function is_string;
+use function str_contains;
 use function str_replace;
-use function strpos;
 use function substr;
 use function token_get_all;
 use const T_COMMENT;
@@ -141,7 +141,7 @@ class PhpParser
                     // Decrease the bracket-counter (not the class-brackets: `$isInFunction` must be true!)
                     $functionBracketBalance--;
                     if ($functionBracketBalance == 0) {
-                        if (strpos($methodCode, 'function ' . $methodName . '(') !== false) {
+                        if (str_contains($methodCode, 'function ' . $methodName . '(')) {
                             $this->knownMethodCache[$methodName] = $methodCode;
 
                             return $methodCode;

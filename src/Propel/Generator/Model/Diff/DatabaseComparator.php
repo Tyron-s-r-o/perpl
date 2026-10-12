@@ -55,7 +55,7 @@ class DatabaseComparator
      */
     public function __construct(?DatabaseDiff $databaseDiff = null)
     {
-        $this->databaseDiff = ($databaseDiff === null) ? new DatabaseDiff() : $databaseDiff;
+        $this->databaseDiff = $databaseDiff ?? new DatabaseDiff();
     }
 
     /**

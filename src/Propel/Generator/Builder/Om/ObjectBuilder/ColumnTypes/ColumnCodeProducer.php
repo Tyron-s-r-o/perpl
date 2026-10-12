@@ -7,8 +7,6 @@ namespace Propel\Generator\Builder\Om\ObjectBuilder\ColumnTypes;
 use Propel\Generator\Builder\Om\AbstractSubsectionCodeProducer;
 use Propel\Generator\Builder\Om\ObjectBuilder;
 use Propel\Generator\Model\Column;
-use Propel\Generator\Model\PropelTypes;
-use Propel\Generator\Platform\OraclePlatform;
 use Propel\Runtime\Util\UuidConverter;
 use function array_intersect;
 use function assert;
@@ -192,13 +190,7 @@ class ColumnCodeProducer extends AbstractSubsectionCodeProducer
         $col = $this->column;
         $attribute = $this->getAttributeName();
 
-        if ($col->getType() === PropelTypes::CLOB_EMU && $this->getPlatform() instanceof OraclePlatform) {
-            // PDO_OCI returns a stream for CLOB objects, while other PDO adapters return a string...
-            $this->declareGlobalFunction('stream_get_contents');
-
-            return "
-            $attribute = stream_get_contents($valueVariable);";
-        } elseif ($col->isUuidBinaryType()) {
+        if ($col->isUuidBinaryType()) {
             $this->declareClasses(UuidConverter::class);
             $this->declareGlobalFunction('is_resource', 'stream_get_contents');
             $uuidSwapFlag = $this->builder->getUuidSwapFlagLiteral();

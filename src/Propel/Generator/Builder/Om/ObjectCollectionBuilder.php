@@ -9,7 +9,7 @@ use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Collection\ObjectCollection;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Formatter\ObjectFormatter;
-use function strpos;
+use function str_contains;
 use function strrpos;
 use function substr;
 
@@ -274,7 +274,7 @@ class ObjectCollectionBuilder extends AbstractOMBuilder
      */
     protected function normalizeClassName(string $className): string
     {
-        $needsSlashesAtStart = $className[0] !== '\\' && strpos('\\', $className) !== false;
+        $needsSlashesAtStart = $className[0] !== '\\' && str_contains('\\', $className);
 
         return $needsSlashesAtStart ? "\\$className" : $className;
     }

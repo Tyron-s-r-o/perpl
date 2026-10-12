@@ -22,15 +22,26 @@ class ConfigurationManagerTest extends TestCase
     use DataProviderTrait;
 
     /**
+     * @param string $filename
+     * @param array $conf
+     *
+     * @return \org\bovigo\vfs\vfsStreamFile
+     */
+    private function newPhpFile(string $filename, array $conf)
+    {
+        return $this->newFile($filename, '<?php return ' . var_export($conf, true) . ';');
+    }
+
+    /**
      * @return void
      */
     public function testLoadConfigFileInCurrentDirectory()
     {
-        $yamlConf = <<<EOF
-foo: bar
-bar: baz
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'foo' => 'bar',
+            'bar' => 'baz',
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new TestableConfigurationManager($this->getRoot()->url());
         $actual = $manager->getConfig();
@@ -44,11 +55,11 @@ EOF;
      */
     public function testLoadConfigFileInConfigSubdirectory()
     {
-        $yamlConf = <<<EOF
-foo: bar
-bar: baz
-EOF;
-        $this->newFile('config/propel.yaml', $yamlConf);
+        $conf = [
+            'foo' => 'bar',
+            'bar' => 'baz',
+        ];
+        $this->newPhpFile('config/propel.php', $conf);
         $manager = new TestableConfigurationManager($this->getRoot()->url());
         $actual = $manager->getConfig();
 
@@ -61,11 +72,11 @@ EOF;
      */
     public function testLoadConfigFileInConfSubdirectory()
     {
-        $yamlConf = <<<EOF
-foo: bar
-bar: baz
-EOF;
-        $this->newFile('conf/propel.yaml', $yamlConf);
+        $conf = [
+            'foo' => 'bar',
+            'bar' => 'baz',
+        ];
+        $this->newPhpFile('conf/propel.php', $conf);
         $manager = new TestableConfigurationManager($this->getRoot()->url());
         $actual = $manager->getConfig();
 
@@ -78,11 +89,11 @@ EOF;
      */
     public function testNotExistingConfigFileLoadsDefaultSettingsAndDoesNotThrowExceptions()
     {
-        $yamlConf = <<<EOF
-foo: bar
-bar: baz
-EOF;
-        $this->newFile('doctrine.yaml', $yamlConf);
+        $conf = [
+            'foo' => 'bar',
+            'bar' => 'baz',
+        ];
+        $this->newPhpFile('doctrine.php', $conf);
 
         $manager = new TestableConfigurationManager($this->getRoot()->url());
         $this->assertNull($manager->getConfigProperty('general.version'));
@@ -93,12 +104,12 @@ EOF;
      */
     public function testBackupConfigFilesAreIgnored()
     {
-        $yamlConf = <<<EOF
-foo: bar
-bar: baz
-EOF;
-        $this->newFile('propel.yaml.bak', $yamlConf);
-        $this->newFile('propel.yaml~', $yamlConf);
+        $conf = [
+            'foo' => 'bar',
+            'bar' => 'baz',
+        ];
+        $this->newPhpFile('propel.php.bak', $conf);
+        $this->newPhpFile('propel.php~', $conf);
 
         $manager = new TestableConfigurationManager($this->getRoot()->url());
         $actual = $manager->getConfig();
@@ -112,11 +123,11 @@ EOF;
      */
     public function testUnsupportedExtensionsAreIgnored()
     {
-        $yamlConf = <<<EOF
-foo: bar
-bar: baz
-EOF;
-        $this->newFile('propel.log', $yamlConf);
+        $conf = [
+            'foo' => 'bar',
+            'bar' => 'baz',
+        ];
+        $this->newPhpFile('propel.log', $conf);
 
         $manager = new TestableConfigurationManager($this->getRoot()->url());
         $actual = $manager->getConfig();
@@ -133,16 +144,16 @@ EOF;
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Propel expects only one configuration file');
 
-        $yamlConf = <<<EOF
-foo: bar
-bar: baz
-EOF;
-        $iniConf = <<<EOF
-foo = bar
-bar = baz
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
-        $this->newFile('propel.ini', $iniConf);
+        $conf = [
+            'foo' => 'bar',
+            'bar' => 'baz',
+        ];
+        $otherConf = [
+            'foo' => 'bar',
+            'bar' => 'baz',
+        ];
+        $this->newPhpFile('propel.php', $conf);
+        $this->newPhpFile('perpl.php', $otherConf);
 
         $manager = new TestableConfigurationManager($this->getRoot()->url());
     }
@@ -155,16 +166,16 @@ EOF;
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Propel expects only one configuration file');
 
-        $yamlConf = <<<EOF
-foo: bar
-bar: baz
-EOF;
-        $iniConf = <<<EOF
-foo = bar
-bar = baz
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
-        $this->newFile('conf/propel.ini', $iniConf);
+        $conf = [
+            'foo' => 'bar',
+            'bar' => 'baz',
+        ];
+        $otherConf = [
+            'foo' => 'bar',
+            'bar' => 'baz',
+        ];
+        $this->newPhpFile('propel.php', $conf);
+        $this->newPhpFile('conf/perpl.php', $otherConf);
 
         $manager = new TestableConfigurationManager($this->getRoot()->url());
     }
@@ -174,15 +185,17 @@ EOF;
      */
     public function testGetSection()
     {
-        $yamlConf = <<<EOF
-runtime:
-    foo: bar
-    bar: baz
-buildtime:
-    bfoo: bbar
-    bbar: bbaz
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'runtime' => [
+                'foo' => 'bar',
+                'bar' => 'baz',
+            ],
+            'buildtime' => [
+                'bfoo' => 'bbar',
+                'bbar' => 'bbaz',
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new TestableConfigurationManager($this->getRoot()->url());
         $actual = $manager->getSection('buildtime');
@@ -196,11 +209,11 @@ EOF;
      */
     public function testLoadGivenConfigFile()
     {
-        $yamlConf = <<<EOF
-foo: bar
-bar: baz
-EOF;
-        $file = $this->newFile('myDir/mySubdir/myConfigFile.yaml', $yamlConf);
+        $conf = [
+            'foo' => 'bar',
+            'bar' => 'baz',
+        ];
+        $file = $this->newPhpFile('myDir/mySubdir/myConfigFile.php', $conf);
 
         $manager = new TestableConfigurationManager($file->url());
         $actual = $manager->getConfig();
@@ -213,19 +226,21 @@ EOF;
      */
     public function testLoadAlsoDistConfigFile()
     {
-        $yamlConf = <<<EOF
-buildtime:
-    bfoo: bbar
-    bbar: bbaz
-EOF;
-        $yamlDistConf = <<<EOF
-runtime:
-    foo: bar
-    bar: baz
-EOF;
+        $conf = [
+            'buildtime' => [
+                'bfoo' => 'bbar',
+                'bbar' => 'bbaz',
+            ],
+        ];
+        $distConf = [
+            'runtime' => [
+                'foo' => 'bar',
+                'bar' => 'baz',
+            ],
+        ];
 
-        $this->newFile('propel.yaml.dist', $yamlDistConf);
-        $this->newFile('propel.yaml', $yamlConf);
+        $this->newPhpFile('propel.php.dist', $distConf);
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new TestableConfigurationManager($this->getRoot()->url());
         $actual = $manager->getConfig();
@@ -239,13 +254,14 @@ EOF;
      */
     public function testLoadOnlyDistFile()
     {
-        $yamlDistConf = <<<EOF
-runtime:
-    foo: bar
-    bar: baz
-EOF;
+        $distConf = [
+            'runtime' => [
+                'foo' => 'bar',
+                'bar' => 'baz',
+            ],
+        ];
 
-        $this->newFile('propel.yaml.dist', $yamlDistConf);
+        $this->newPhpFile('propel.php.dist', $distConf);
 
         $manager = new TestableConfigurationManager($this->getRoot()->url());
         $actual = $manager->getConfig();
@@ -258,18 +274,20 @@ EOF;
      */
     public function testLoadGivenFileAndDist()
     {
-        $yamlConf = <<<EOF
-buildtime:
-    bfoo: bbar
-    bbar: bbaz
-EOF;
-        $yamlDistConf = <<<EOF
-runtime:
-    foo: bar
-    bar: baz
-EOF;
-        $file = $this->newFile('myDir/mySubdir/myConfigFile.yaml', $yamlConf);
-        $this->newFile('myDir/mySubdir/myConfigFile.yaml.dist', $yamlDistConf);
+        $conf = [
+            'buildtime' => [
+                'bfoo' => 'bbar',
+                'bbar' => 'bbaz',
+            ],
+        ];
+        $distConf = [
+            'runtime' => [
+                'foo' => 'bar',
+                'bar' => 'baz',
+            ],
+        ];
+        $file = $this->newPhpFile('myDir/mySubdir/myConfigFile.php', $conf);
+        $this->newPhpFile('myDir/mySubdir/myConfigFile.php.dist', $distConf);
 
         $manager = new TestableConfigurationManager($file->url());
         $actual = $manager->getConfig();
@@ -283,12 +301,13 @@ EOF;
      */
     public function testLoadDistGivenFileOnly()
     {
-        $yamlDistConf = <<<EOF
-runtime:
-    foo: bar
-    bar: baz
-EOF;
-        $file = $this->newFile('myDir/mySubdir/myConfigFile.yaml.dist', $yamlDistConf);
+        $distConf = [
+            'runtime' => [
+                'foo' => 'bar',
+                'bar' => 'baz',
+            ],
+        ];
+        $file = $this->newPhpFile('myDir/mySubdir/myConfigFile.php.dist', $distConf);
 
         $manager = new TestableConfigurationManager($file->url());
         $actual = $manager->getConfig();
@@ -301,18 +320,20 @@ EOF;
      */
     public function testLoadInGivenDirectory()
     {
-        $yamlConf = <<<EOF
-buildtime:
-    bfoo: bbar
-    bbar: bbaz
-EOF;
-        $yamlDistConf = <<<EOF
-runtime:
-    foo: bar
-    bar: baz
-EOF;
-        $this->newFile('myDir/mySubdir/propel.yaml', $yamlConf);
-        $this->newFile('myDir/mySubdir/propel.yaml.dist', $yamlDistConf);
+        $conf = [
+            'buildtime' => [
+                'bfoo' => 'bbar',
+                'bbar' => 'bbaz',
+            ],
+        ];
+        $distConf = [
+            'runtime' => [
+                'foo' => 'bar',
+                'bar' => 'baz',
+            ],
+        ];
+        $this->newPhpFile('myDir/mySubdir/propel.php', $conf);
+        $this->newPhpFile('myDir/mySubdir/propel.php.dist', $distConf);
         $manager = new TestableConfigurationManager(vfsStream::url('root/myDir/mySubdir/'));
         $actual = $manager->getConfig();
 
@@ -335,15 +356,17 @@ EOF;
             ],
         ];
 
-        $yamlConf = <<<EOF
-runtime:
-    foo: bar
-    bar: baz
-buildtime:
-    bfoo: bbar
-    bbar: bbaz
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'runtime' => [
+                'foo' => 'bar',
+                'bar' => 'baz',
+            ],
+            'buildtime' => [
+                'bfoo' => 'bbar',
+                'bbar' => 'bbaz',
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new TestableConfigurationManager($this->getRoot()->url(), $extraConf);
         $actual = $manager->getConfig();
@@ -361,15 +384,17 @@ EOF;
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('Unrecognized options "foo, bar" under "propel"');
 
-        $yamlConf = <<<EOF
-runtime:
-    foo: bar
-    bar: baz
-buildtime:
-    bfoo: bbar
-    bbar: bbaz
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'runtime' => [
+                'foo' => 'bar',
+                'bar' => 'baz',
+            ],
+            'buildtime' => [
+                'bfoo' => 'bbar',
+                'bbar' => 'bbaz',
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new ConfigurationManager($this->getRoot()->url());
     }
@@ -379,21 +404,26 @@ EOF;
      */
     public function testNotDefineRuntimeAndGeneratorSectionUsesDefaultConnections()
     {
-        $yamlConf = <<<EOF
-propel:
-  general:
-      project: MyAwesomeProject
-      version: 2.0.0-dev
-  database:
-    connections:
-        default:
-            adapter: sqlite
-            classname: Propel\Runtime\Connection\ConnectionWrapper
-            dsn: sqlite:memory
-            user:
-            password:
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'propel' => [
+                'general' => [
+                    'project' => 'MyAwesomeProject',
+                    'version' => '2.0.0-dev',
+                ],
+                'database' => [
+                    'connections' => [
+                        'default' => [
+                            'adapter' => 'sqlite',
+                            'classname' => 'Propel\\Runtime\\Connection\\ConnectionWrapper',
+                            'dsn' => 'sqlite:memory',
+                            'user' => null,
+                            'password' => null,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new ConfigurationManager($this->getRoot()->url());
 
@@ -416,13 +446,15 @@ EOF;
         //Starting from Symfony Config 5.2, the following message changed
         //$this->expectExceptionMessage('The child node "database" at path "propel" must be configured');
 
-        $yamlConf = <<<EOF
-propel:
-  general:
-      project: MyAwesomeProject
-      version: 2.0.0-dev
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'propel' => [
+                'general' => [
+                    'project' => 'MyAwesomeProject',
+                    'version' => '2.0.0-dev',
+                ],
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new ConfigurationManager($this->getRoot()->url());
     }
@@ -435,27 +467,35 @@ EOF;
         $this->expectException(InvalidConfigurationException::class);
         $this->expectExceptionMessage('Dots are not allowed in connection names');
 
-        $yamlConf = <<<EOF
-propel:
-  database:
-      connections:
-          mysource.name:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=mydb
-              user: root
-              password:
-  runtime:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-  generator:
-      defaultConnection: mysource
-      connections:
-          - mysource
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'propel' => [
+                'database' => [
+                    'connections' => [
+                        'mysource.name' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=mydb',
+                            'user' => 'root',
+                            'password' => null,
+                        ],
+                    ],
+                ],
+                'runtime' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+                'generator' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                    ],
+                ],
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new ConfigurationManager($this->getRoot()->url());
     }
@@ -464,11 +504,11 @@ EOF;
      * @return void
      */
     #[DataProvider('providerForInvalidConnections')]
-    public function testRuntimeOrGeneratorConnectionIsNotInConfiguredConnectionsThrowsException($yamlConf, $section)
+    public function testRuntimeOrGeneratorConnectionIsNotInConfiguredConnectionsThrowsException($conf, $section)
     {
         $this->expectException(InvalidConfigurationException::class);
 
-        $this->newFile('propel.yaml', $yamlConf);
+        $this->newPhpFile('propel.php', $conf);
         $manager = new ConfigurationManager($this->getRoot()->url());
     }
 
@@ -476,11 +516,11 @@ EOF;
      * @return void
      */
     #[DataProvider('providerForInvalidDefaultConnection')]
-    public function testRuntimeOrGeneratorDefaultConnectionIsNotInConfiguredConnectionsThrowsException($yamlConf, $section)
+    public function testRuntimeOrGeneratorDefaultConnectionIsNotInConfiguredConnectionsThrowsException($conf, $section)
     {
         $this->expectException(InvalidConfigurationException::class);
 
-        $this->newFile('propel.yaml', $yamlConf);
+        $this->newPhpFile('propel.php', $conf);
         $manager = new ConfigurationManager($this->getRoot()->url());
     }
 
@@ -489,36 +529,45 @@ EOF;
      */
     public function testLoadValidConfigurationFile()
     {
-        $yamlConf = <<<EOF
-propel:
-  database:
-      connections:
-          mysource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=mydb
-              user: root
-              password:
-              attributes:
-          yoursource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=yourdb
-              user: root
-              password:
-              attributes:
-  runtime:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-  generator:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'propel' => [
+                'database' => [
+                    'connections' => [
+                        'mysource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=mydb',
+                            'user' => 'root',
+                            'password' => null,
+                            'attributes' => null,
+                        ],
+                        'yoursource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=yourdb',
+                            'user' => 'root',
+                            'password' => null,
+                            'attributes' => null,
+                        ],
+                    ],
+                ],
+                'runtime' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+                'generator' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new ConfigurationManager($this->getRoot()->url());
         $actual = $manager->getConfigProperty('runtime');
@@ -532,36 +581,45 @@ EOF;
      */
     public function testSomeDeafults()
     {
-        $yamlConf = <<<EOF
-propel:
-  database:
-      connections:
-          mysource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=mydb
-              user: root
-              password:
-              attributes:
-          yoursource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=yourdb
-              user: root
-              password:
-              attributes:
-  runtime:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-  generator:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'propel' => [
+                'database' => [
+                    'connections' => [
+                        'mysource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=mydb',
+                            'user' => 'root',
+                            'password' => null,
+                            'attributes' => null,
+                        ],
+                        'yoursource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=yourdb',
+                            'user' => 'root',
+                            'password' => null,
+                            'attributes' => null,
+                        ],
+                    ],
+                ],
+                'runtime' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+                'generator' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new ConfigurationManager($this->getRoot()->url());
         $actual = $manager->getConfig();
@@ -578,36 +636,45 @@ EOF;
      */
     public function testGetConfigProperty()
     {
-        $yamlConf = <<<EOF
-propel:
-  database:
-      connections:
-          mysource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=mydb
-              user: root
-              password:
-              attributes:
-          yoursource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=yourdb
-              user: root
-              password:
-              attributes:
-  runtime:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-  generator:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'propel' => [
+                'database' => [
+                    'connections' => [
+                        'mysource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=mydb',
+                            'user' => 'root',
+                            'password' => null,
+                            'attributes' => null,
+                        ],
+                        'yoursource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=yourdb',
+                            'user' => 'root',
+                            'password' => null,
+                            'attributes' => null,
+                        ],
+                    ],
+                ],
+                'runtime' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+                'generator' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new ConfigurationManager($this->getRoot()->url());
         $this->assertEquals('mysource', $manager->getConfigProperty('runtime.defaultConnection'));
@@ -623,36 +690,45 @@ EOF;
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid empty configuration property name');
 
-        $yamlConf = <<<EOF
-propel:
-  database:
-      connections:
-          mysource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=mydb
-              user: root
-              password:
-              attributes:
-          yoursource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=yourdb
-              user: root
-              password:
-              attributes:
-  runtime:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-  generator:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'propel' => [
+                'database' => [
+                    'connections' => [
+                        'mysource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=mydb',
+                            'user' => 'root',
+                            'password' => null,
+                            'attributes' => null,
+                        ],
+                        'yoursource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=yourdb',
+                            'user' => 'root',
+                            'password' => null,
+                            'attributes' => null,
+                        ],
+                    ],
+                ],
+                'runtime' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+                'generator' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new ConfigurationManager();
         $manager->getConfigProperty('');
@@ -663,36 +739,45 @@ EOF;
      */
     public function testGetConfigPropertyBadName()
     {
-        $yamlConf = <<<EOF
-propel:
-  database:
-      connections:
-          mysource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=mydb
-              user: root
-              password:
-              attributes:
-          yoursource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=yourdb
-              user: root
-              password:
-              attributes:
-  runtime:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-  generator:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'propel' => [
+                'database' => [
+                    'connections' => [
+                        'mysource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=mydb',
+                            'user' => 'root',
+                            'password' => null,
+                            'attributes' => null,
+                        ],
+                        'yoursource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=yourdb',
+                            'user' => 'root',
+                            'password' => null,
+                            'attributes' => null,
+                        ],
+                    ],
+                ],
+                'runtime' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+                'generator' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $manager = new ConfigurationManager($this->getRoot()->url());
         $value = $manager->getConfigProperty('database.connections.adapter');
@@ -754,35 +839,45 @@ EOF;
      */
     public function testGetConfigurationParametersArrayTest()
     {
-        $yamlConf = <<<EOF
-propel:
-  database:
-      connections:
-          mysource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=mydb
-              user: root
-              password:
-              model_paths:
-                - src
-          yoursource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=yourdb
-              user: root
-              password:
-  runtime:
-      defaultConnection: mysource
-      connections:
-          - mysource
-          - yoursource
-  generator:
-      defaultConnection: mysource
-      connections:
-          - mysource
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'propel' => [
+                'database' => [
+                    'connections' => [
+                        'mysource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=mydb',
+                            'user' => 'root',
+                            'password' => null,
+                            'model_paths' => [
+                                'src',
+                            ],
+                        ],
+                        'yoursource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=yourdb',
+                            'user' => 'root',
+                            'password' => null,
+                        ],
+                    ],
+                ],
+                'runtime' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                        'yoursource',
+                    ],
+                ],
+                'generator' => [
+                    'defaultConnection' => 'mysource',
+                    'connections' => [
+                        'mysource',
+                    ],
+                ],
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
 
         $expectedRuntime = [
             'mysource' => [
@@ -833,24 +928,29 @@ EOF;
      */
     public function testSetConnectionsIfNotDefined()
     {
-        $yamlConf = <<<EOF
-propel:
-  database:
-      connections:
-          mysource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=mydb
-              user: root
-              password:
-          yoursource:
-              adapter: mysql
-              classname: Propel\Runtime\Connection\DebugPDO
-              dsn: mysql:host=localhost;dbname=yourdb
-              user: root
-              password:
-EOF;
-        $this->newFile('propel.yaml', $yamlConf);
+        $conf = [
+            'propel' => [
+                'database' => [
+                    'connections' => [
+                        'mysource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=mydb',
+                            'user' => 'root',
+                            'password' => null,
+                        ],
+                        'yoursource' => [
+                            'adapter' => 'mysql',
+                            'classname' => 'Propel\\Runtime\\Connection\\DebugPDO',
+                            'dsn' => 'mysql:host=localhost;dbname=yourdb',
+                            'user' => 'root',
+                            'password' => null,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $this->newPhpFile('propel.php', $conf);
         $manager = new ConfigurationManager($this->getRoot()->url());
 
         $this->assertEquals('mysource', $manager->getConfigProperty('generator.defaultConnection'));

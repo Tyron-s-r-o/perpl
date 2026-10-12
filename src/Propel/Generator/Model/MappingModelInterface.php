@@ -12,7 +12,7 @@ interface MappingModelInterface
     /**
      * @var string
      */
-    public const DEFAULT_STRING_FORMAT = 'YAML';
+    public const DEFAULT_STRING_FORMAT = 'JSON';
 
     /**
      * @var string

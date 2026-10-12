@@ -23,7 +23,6 @@ use function array_merge;
 use function array_slice;
 use function array_values;
 use function count;
-use function get_class;
 use function implode;
 use function in_array;
 use function is_array;
@@ -473,9 +472,7 @@ class Table extends ScopedMappingModel implements IdMethod
         foreach ($columns as $column) {
             $indexedColumns[] = $column;
             $indexedColumnsHash = $this->getColumnList($indexedColumns);
-            if (!isset($collectedIndexes[$indexedColumnsHash])) {
-                $collectedIndexes[$indexedColumnsHash] = [];
-            }
+            $collectedIndexes[$indexedColumnsHash] ??= [];
             $collectedIndexes[$indexedColumnsHash][] = $indexName;
         }
     }
@@ -771,7 +768,7 @@ class Table extends ScopedMappingModel implements IdMethod
 
         $names = [];
         foreach ($this->inheritanceColumn->getChildren() as $child) {
-            $names[] = get_class($child);
+            $names[] = $child::class;
         }
 
         return $names;
@@ -1258,9 +1255,7 @@ class Table extends ScopedMappingModel implements IdMethod
      */
     public function getPhpName(): string
     {
-        if ($this->phpName === null) {
-            $this->phpName = $this->buildPhpName($this->getStdSeparatedName());
-        }
+        $this->phpName ??= $this->buildPhpName($this->getStdSeparatedName());
 
         return $this->phpName;
     }
@@ -1342,7 +1337,7 @@ class Table extends ScopedMappingModel implements IdMethod
     /**
      * Sets the default string format for ActiveRecord objects in this table.
      *
-     * Any of 'XML', 'YAML', 'JSON', or 'CSV'.
+     * Only 'JSON' is supported.
      *
      * @param string $format
      *
@@ -1836,11 +1831,7 @@ class Table extends ScopedMappingModel implements IdMethod
      */
     public function getColumnByPhpName(string $phpName): ?Column
     {
-        if (isset($this->columnsByPhpName[$phpName])) {
-            return $this->columnsByPhpName[$phpName];
-        }
-
-        return null;
+        return $this->columnsByPhpName[$phpName] ?? null;
     }
 
     /**

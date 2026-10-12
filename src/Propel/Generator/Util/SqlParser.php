@@ -9,10 +9,10 @@ use Propel\Runtime\Connection\StatementInterface;
 use function file_exists;
 use function file_get_contents;
 use function preg_replace;
+use function str_contains;
 use function str_ireplace;
 use function str_replace;
 use function strlen;
-use function strpos;
 use function strtolower;
 use function trim;
 use const PHP_EOL;
@@ -289,7 +289,7 @@ class SqlParser
                 $isAfterBackslash = false;
             }
             if (!$isInString) {
-                if (strpos($lowercaseString, 'delimiter ') !== false) {
+                if (str_contains($lowercaseString, 'delimiter ')) {
                     // remove DELIMITER from string because it's a command-line keyword only
                     $parsedString = trim(str_ireplace('delimiter ', '', $parsedString));
                     // set new delimiter

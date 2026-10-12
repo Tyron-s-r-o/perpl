@@ -115,7 +115,7 @@ class GeneratedTableMapTest extends BookstoreTestBase
     public function testDefaultStringFormatConstant()
     {
         $this->assertTrue(defined('Propel\Tests\Bookstore\Map\BookTableMap::DEFAULT_STRING_FORMAT'), 'every TableMap class has the DEFAULT_STRING_FORMAT constant');
-        $this->assertEquals('YAML', AuthorTableMap::DEFAULT_STRING_FORMAT, 'default string format is YAML by default');
-        $this->assertEquals('XML', PublisherTableMap::DEFAULT_STRING_FORMAT, 'default string format can be customized using the defaultStringFormat attribute in the schema');
+        $this->assertEquals('JSON', AuthorTableMap::DEFAULT_STRING_FORMAT, 'default string format is JSON by default');
+        $this->assertEquals('JSON', PublisherTableMap::DEFAULT_STRING_FORMAT, 'default string format can be customized using the defaultStringFormat attribute in the schema');
     }
 }

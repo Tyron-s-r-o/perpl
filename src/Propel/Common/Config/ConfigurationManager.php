@@ -41,7 +41,7 @@ use const PHP_EOL;
 /**
  * Class ConfigurationManager
  *
- * Class to load and process configuration files. Supported formats are: php, ini (or .properties), yaml, xml, json.
+ * Class to load and process configuration files. The only supported format is PHP (file returning an array).
  */
 class ConfigurationManager
 {
@@ -234,8 +234,7 @@ class ConfigurationManager
      * Find a configuration file and load it as array.
      *
      * Default configuration file is named 'perpl' and is expected to be found in the current directory
-     * or a subdirectory named '/conf' or '/config'. It can have one of the supported extensions (.ini, .properties,
-     * .json, .yaml, .yml, .xml, .php, .inc).
+     * or a subdirectory named '/conf' or '/config'. It must have the extension .php (or .php.dist / .dist.php).
      *
      * Only one configuration file is supposed to be found.
      *
@@ -336,9 +335,9 @@ class ConfigurationManager
             $path . '/config',
             $path . '/perpl',
         ];
-        $dirs = array_filter($dirs, 'is_dir');
+        $dirs = array_filter($dirs, is_dir(...));
 
-        $fileGlob = 'p{rope,erp}l{,.dist}.{php,inc,ini,properties,yaml,yml,xml,json}{,.dist}';
+        $fileGlob = 'p{rope,erp}l{,.dist}.php{,.dist}';
         $finder = new Finder();
         $finder->in($dirs)->depth(0)->files()->name($fileGlob);
         $orderedConfigFileNames = [];
@@ -419,9 +418,7 @@ class ConfigurationManager
                 $configSection['connections'] = array_keys($databaseConnections);
             }
 
-            if (!isset($configSection['defaultConnection'])) {
-                $configSection['defaultConnection'] = array_key_first($databaseConnections);
-            }
+            $configSection['defaultConnection'] ??= array_key_first($databaseConnections);
 
             foreach ($configSection['connections'] as $connection) {
                 $assertConnectionExists($connection, $section, 'connections');

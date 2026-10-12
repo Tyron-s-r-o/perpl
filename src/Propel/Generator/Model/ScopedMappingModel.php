@@ -8,7 +8,7 @@ use Propel\Generator\Config\AbstractGeneratorConfig;
 use Propel\Generator\Exception\LogicException;
 use function rtrim;
 use function str_replace;
-use function substr;
+use function str_starts_with;
 use function trim;
 
 /**
@@ -150,7 +150,7 @@ abstract class ScopedMappingModel extends MappingModel
      */
     public function isAbsoluteNamespace(?string $namespace): bool
     {
-        return ($namespace && substr($namespace, 0, 1) === '\\');
+        return ($namespace && str_starts_with($namespace, '\\'));
     }
 
     /**

@@ -25,30 +25,17 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                php-version: [ '8.1', '8.5' ]
-                db-type: [ sqlite, mysql, pgsql, agnostic ]
+                php-version: [ '8.3', '8.5' ]
+                db-type: [ sqlite, mysql, agnostic ]
                 symfony-version: [ '6-min', '6-max', '7-min', '7-max', '8-min', '8-max']
                 exclude:
-                  - symfony-version: '7-min'
-                    php-version: '8.1'
-                  - symfony-version: '7-max'
-                    php-version: '8.1'
                   - symfony-version: '8-min'
-                    php-version: '8.1'
+                    php-version: '8.3'
                   - symfony-version: '8-max'
-                    php-version: '8.1'
+                    php-version: '8.3'
         services:
-            postgres:
-                image: ${{ matrix.db-type == 'pgsql' && (matrix.php-version == '8.1' && 'postgres:9' || 'postgres:latest') || '' }}
-                env:
-                    POSTGRES_DB: ${{ env.DB_NAME }}
-                    POSTGRES_USER: ${{ env.DB_USER }}
-                    POSTGRES_PASSWORD: ${{ env.DB_PW }}
-                ports:
-                    - 5432:5432
-
             mysql:
-                image: ${{ matrix.db-type == 'mysql' && (matrix.php-version == '8.1' && 'mariadb:10.2' || 'mysql:latest') || '' }}
+                image: ${{ matrix.db-type == 'mysql' && (matrix.php-version == '8.3' && 'mariadb:10.2' || 'mysql:latest') || '' }}
                 env:
                     MYSQL_ROOT_PASSWORD: ${{ env.DB_PW }}
                     MYSQL_DATABASE: ${{ env.DB_NAME }}
@@ -92,7 +79,7 @@ jobs:
             - name: Run tests
               shell: bash
               run: |
-                if [[ ${{ matrix.php-version }} == '8.1' && ${{ matrix.symfony-version }} == '6-max' ]]; then
+                if [[ ${{ matrix.php-version }} == '8.3' && ${{ matrix.symfony-version }} == '6-max' ]]; then
                   export CODECOVERAGE=1 && vendor/bin/phpunit -c tests/${{ matrix.db-type }}.phpunit.xml --coverage-clover=tests/coverage.xml
                 else
                   vendor/bin/phpunit -c tests/${{ matrix.db-type }}.phpunit.xml
@@ -101,7 +88,7 @@ jobs:
                 SYMFONY_VERSION: ${{ matrix.symfony-version }}
 
             - name: Code Coverage Report
-              if: success() && matrix.php-version == '8.1' && matrix.symfony-version == '6-max'
+              if: success() && matrix.php-version == '8.3' && matrix.symfony-version == '6-max'
               uses: codecov/codecov-action@v6
               with:
                   flags: ${{ matrix.db-type }}-php${{ matrix.php-version }}-symfony${{ matrix.symfony-version }}
@@ -114,7 +101,7 @@ jobs:
           fail-fast: false
           matrix:
             include:
-              - php-version: '8.1'
+              - php-version: '8.3'
                 symfony-version: '6-max'
               - php-version: '8.5'
                 symfony-version: '8-max'

@@ -52,7 +52,7 @@ class InstancePoolTest extends BookstoreTestBase
             [UuidBinaryPkTable::class, UuidBinaryPkTableQuery::class, UuidBinaryPkTableTableMap::class, 'b41a29db-cf78-4d43-83a9-4cd3e1e1b41a'],
             [DatePkTable::class, DatePkTableQuery::class, DatePkTableTableMap::class, '2026-03-27'],
             [DatetimePkTable::class, DatetimePkTableQuery::class, DatetimePkTableTableMap::class, '2026-03-27 16:01:12'], // NOTE: regular Datetime does not support milliseconds
-            [DatetimeFractionalPkTable::class, DatetimeFractionalPkTableQuery::class, DatetimeFractionalPkTableTableMap::class, '2026-03-27 10:01:12.345678'], // NOTE: returned value will include milliseconds (no trailing zeros on Postgres)
+            [DatetimeFractionalPkTable::class, DatetimeFractionalPkTableQuery::class, DatetimeFractionalPkTableTableMap::class, '2026-03-27 10:01:12.345678'], // NOTE: returned value will include milliseconds
             [FloatPkTable::class, FloatPkTableQuery::class, FloatPkTableTableMap::class, 1.5], // NOTE: Depends on rounding
             [DecimalPkTable::class, DecimalPkTableQuery::class, DecimalPkTableTableMap::class, '1.30000'],
             [EnumBinaryPkTable::class, EnumBinaryPkTableQuery::class, EnumBinaryPkTableTableMap::class, 'bar'],

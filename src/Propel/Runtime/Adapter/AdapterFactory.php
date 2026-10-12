@@ -7,7 +7,7 @@ namespace Propel\Runtime\Adapter;
 use Propel\Runtime\Exception\InvalidArgumentException;
 use function class_exists;
 use function sprintf;
-use function strpos;
+use function str_contains;
 use function ucfirst;
 
 /**
@@ -30,7 +30,7 @@ class AdapterFactory
     {
         if (!$driver) {
             $adapterClass = '\Propel\Runtime\Adapter\NoneAdapter';
-        } elseif (strpos($driver, '\\') === false) {
+        } elseif (!str_contains($driver, '\\')) {
             $adapterClass = '\Propel\Runtime\Adapter\Pdo\\' . ucfirst($driver) . 'Adapter';
             if (!class_exists($adapterClass)) {
                 $adapterClass = '\Propel\Runtime\Adapter\\' . ucfirst($driver) . 'Adapter';

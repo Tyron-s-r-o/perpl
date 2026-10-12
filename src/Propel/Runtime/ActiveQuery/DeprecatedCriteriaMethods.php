@@ -578,7 +578,7 @@ class DeprecatedCriteriaMethods extends Criteria
      */
     public function getCriterionForConditions(array $conditions, ?string $operator = null): ColumnFilterInterface
     {
-        $operator = ($operator === null) ? Criteria::LOGICAL_AND : $operator;
+        $operator ??= Criteria::LOGICAL_AND;
         $this->combine($conditions, $operator, 'propel_temp_name');
         $criterion = $this->namedCriterions['propel_temp_name'];
         unset($this->namedCriterions['propel_temp_name']);

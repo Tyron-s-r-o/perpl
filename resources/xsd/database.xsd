@@ -789,7 +789,7 @@
         <xs:attribute name="defaultStringFormat" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation xml:lang="en">
-                    The default format used to convert objects based on this table to strings. Propel supports by default the 'XML', 'YAML', 'JSON', and 'CSV' formats, but custom formats are also possible.
+                    The default format used to convert objects based on this table to strings. Only the 'JSON' format is supported.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
@@ -913,7 +913,7 @@
         <xs:attribute name="defaultStringFormat" type="xs:string" use="optional">
             <xs:annotation>
                 <xs:documentation xml:lang="en">
-                    The default format used to convert objects based on this database to strings. Propel supports by default the 'XML', 'YAML', 'JSON', and 'CSV' formats, but custom formats are also possible.
+                    The default format used to convert objects based on this database to strings. Only the 'JSON' format is supported.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

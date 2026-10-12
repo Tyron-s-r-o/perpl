@@ -202,7 +202,7 @@
      *  => {"Id":9012,"Title":"Don Juan","ISBN":"0140422161","Price":12.99,"PublisherId":1234,"AuthorId":5678}');
      * </code>
      *
-     * @param \Propel\Runtime\Parser\AbstractParser|string $parser An AbstractParser instance, or a format name ('XML', 'YAML', 'JSON', 'CSV')
+     * @param \Propel\Runtime\Parser\AbstractParser|string $parser An AbstractParser instance, or a format name ('JSON')
      * @param bool $includeLazyLoadColumns (optional) Whether to include lazy load(ed) columns. Defaults to TRUE.
      * @param string $keyType (optional) One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME, TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM. Defaults to TableMap::TYPE_PHPNAME.
      * 
@@ -222,24 +222,98 @@
     }
 
     /**
-     * Clean up internal collections prior to serializing
-     * Avoids recursive loops that turn into segmentation faults when serializing
+     * Properties holding related objects and internal state, which are not serialized.
+     * Keys are property names as found in an array cast of the object.
      *
-     * @return array<string>
+     * @var array<string, true>
      */
-    public function __sleep(): array
-    {
-        $this->clearAllReferences();
+    private const TRANSIENT_PROPERTIES = [/*%TRANSIENT_PROPERTIES%*/];
 
-        $cls = new ReflectionClass($this);
-        $staticProperties = $cls->getProperties(ReflectionProperty::IS_STATIC);
-        $properties = $cls->getProperties();
-        $serializableProperties = array_diff($properties, $staticProperties);
-        
-        $propertyNames = [];
-        foreach ($serializableProperties as $property) {
-            $propertyNames[] = $property->getName();
+    /**
+     * Names of the serialized properties declared in this class, by their key in an array cast of the object.
+     *
+     * @var array<string, string>
+     */
+    private const SERIALIZED_PROPERTIES = [/*%SERIALIZED_PROPERTIES%*/];
+
+    /**
+     * Returns column values and state of the object, without related objects.
+     * The object itself is not changed.
+     *
+     * @return array<string, mixed>
+     */
+    public function __serialize(): array
+    {
+<?php if ($hasParentClass): ?>
+        return array_diff_key((array)$this, $this->getTransientProperties());
+<?php else: ?>
+        return array_diff_key((array)$this, self::TRANSIENT_PROPERTIES);
+<?php endif?>
+    }
+
+    /**
+     * Restores the object from the output of __serialize(). Also reads objects
+     * serialized with all their properties, related objects in them are ignored.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return void
+     */
+    public function __unserialize(array $data): void
+    {
+<?php if ($hasParentClass): ?>
+        $transientProperties = $this->getTransientProperties();
+<?php endif?>
+        foreach ($data as $key => $value) {
+            $propertyName = self::SERIALIZED_PROPERTIES[$key] ?? null;
+            if ($propertyName !== null) {
+                $this->$propertyName = $value;
+
+                continue;
+            }
+<?php if ($hasParentClass): ?>
+            if (isset($transientProperties[$key])) {
+<?php else: ?>
+            if (isset(self::TRANSIENT_PROPERTIES[$key])) {
+<?php endif?>
+                continue;
+            }
+            // property of a subclass or a property this class no longer has
+            $key = (string)$key;
+            if ($key === '' || $key[0] !== "\0") {
+                $this->$key = $value;
+            } elseif ($key[1] === '*') {
+                $propertyName = substr($key, 3);
+                // other protected properties are from previous versions of the class, like state of relations
+                if (property_exists($this, $propertyName)) {
+                    $this->$propertyName = $value;
+                }
+            } else {
+                $separatorPosition = (int)strpos($key, "\0", 1);
+                $propertyName = substr($key, $separatorPosition + 1);
+                $declaringClass = substr($key, 1, $separatorPosition - 1);
+                if ($declaringClass === self::class) {
+                    $this->$propertyName = $value;
+                } elseif (class_exists($declaringClass) && property_exists($declaringClass, $propertyName)) {
+                    (function () use ($propertyName, $value): void {
+                        $this->$propertyName = $value;
+                    })->bindTo($this, $declaringClass)();
+                }
+            }
+        }
+    }
+<?php if ($hasParentClass): ?>
+
+    /**
+     * @return array<string, true>
+     */
+    protected function getTransientProperties(): array
+    {
+        $parentClass = get_parent_class(self::class);
+        if ($parentClass && method_exists($parentClass, 'getTransientProperties')) {
+            return self::TRANSIENT_PROPERTIES + parent::getTransientProperties();
         }
 
-        return $propertyNames;
+        return self::TRANSIENT_PROPERTIES;
     }
+<?php endif?>

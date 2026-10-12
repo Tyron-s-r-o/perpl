@@ -11,6 +11,7 @@ use Propel\Generator\Model\Index;
 use Propel\Generator\Model\Schema;
 use Propel\Generator\Model\Unique;
 use Propel\Generator\Platform\PlatformInterface;
+use function array_key_last;
 use function array_keys;
 use function array_pop;
 use function count;
@@ -18,11 +19,10 @@ use function dirname;
 use function end;
 use function file_exists;
 use function file_get_contents;
-use function key;
 use function phpversion;
 use function realpath;
 use function sprintf;
-use function strpos;
+use function str_contains;
 use function strtolower;
 use function version_compare;
 use function xml_error_string;
@@ -200,7 +200,7 @@ class SchemaReader
 
         $this->parser = xml_parser_create();
         xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, 0);
-        xml_set_element_handler($this->parser, [$this, 'startElement'], [$this, 'endElement']);
+        xml_set_element_handler($this->parser, $this->startElement(...), $this->endElement(...));
         try {
             $success = xml_parse($this->parser, $xmlString);
         } catch (Exception $e) {
@@ -274,7 +274,7 @@ class SchemaReader
                     if (
                         !isset($attributes['schema'])
                         && $this->currDB->getSchema() && $this->currDB->getPlatform()->supportsSchemas()
-                        && strpos($attributes['name'], $this->currDB->getPlatform()->getSchemaDelimiter()) === false
+                        && !str_contains($attributes['name'], $this->currDB->getPlatform()->getSchemaDelimiter())
                     ) {
                         $attributes['schema'] = $this->currDB->getSchema();
                     }
@@ -387,45 +387,26 @@ class SchemaReader
                     $this->throwInvalidTagException($tagName);
             }
         } elseif ($parentTag === 'behavior') {
-            switch ($tagName) {
-                case 'parameter':
-                    $this->currBehavior->addParameter($attributes);
-
-                    break;
-                case 'parameter-list':
-                    $this->initParameterListCollector($attributes);
-
-                    break;
-                default:
-                    $this->throwInvalidTagException($tagName);
-            }
+            match ($tagName) {
+                'parameter' => $this->currBehavior->addParameter($attributes),
+                'parameter-list' => $this->initParameterListCollector($attributes),
+                default => $this->throwInvalidTagException($tagName),
+            };
         } elseif ($parentTag === 'parameter-list') {
-            switch ($tagName) {
-                case 'parameter-list-item':
-                    $this->addItemToParameterListCollector();
-
-                    break;
-                default:
-                    $this->throwInvalidTagException($tagName);
-            }
+            match ($tagName) {
+                'parameter-list-item' => $this->addItemToParameterListCollector(),
+                default => $this->throwInvalidTagException($tagName),
+            };
         } elseif ($parentTag === 'parameter-list-item') {
-            switch ($tagName) {
-                case 'parameter':
-                    $this->addAttributeToParameterListItem($attributes);
-
-                    break;
-                default:
-                    $this->throwInvalidTagException($tagName);
-            }
+            match ($tagName) {
+                'parameter' => $this->addAttributeToParameterListItem($attributes),
+                default => $this->throwInvalidTagException($tagName),
+            };
         } elseif ($parentTag === 'vendor') {
-            switch ($tagName) {
-                case 'parameter':
-                    $this->currVendorObject->setParameter($attributes['name'], $attributes['value']);
-
-                    break;
-                default:
-                    $this->throwInvalidTagException($tagName);
-            }
+            match ($tagName) {
+                'parameter' => $this->currVendorObject->setParameter($attributes['name'], $attributes['value']),
+                default => $this->throwInvalidTagException($tagName),
+            };
         } else {
             // it must be an invalid tag
             $this->throwInvalidTagException($tagName);
@@ -599,8 +580,7 @@ class SchemaReader
         $name = $this->getExpectedValue($attributes, 'name');
         $value = $this->getExpectedValue($attributes, 'value');
         $items = &$this->currParameterListCollector['value'];
-        end($items);
-        $currentItem = &$items[key($items)];
+        $currentItem = &$items[array_key_last($items)];
         $currentItem[$name] = $value;
     }
 

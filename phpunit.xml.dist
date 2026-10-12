@@ -15,12 +15,11 @@
   </testsuites>
   <groups>
     <exclude>
-      <group>pgsql</group>
       <group>mysql</group>
     </exclude>
   </groups>
   <php>
-    <!-- DB is one of mysql, sqlite, pgsql -->
+    <!-- DB is one of mysql, sqlite -->
     <env name="DB" value="mysql"/>
     <env name="DB_USER" value=""/>
     <env name="DB_PW" value=""/>

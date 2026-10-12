@@ -8,9 +8,11 @@ use LogicException;
 use Propel\Common\Pluralizer\PluralizerInterface;
 use Propel\Generator\Platform\PlatformInterface;
 use Propel\Runtime\Exception\RuntimeException;
+use Stringable;
 use function array_diff;
 use function array_filter;
 use function array_map;
+use function array_reverse;
 use function array_search;
 use function count;
 use function implode;
@@ -25,7 +27,7 @@ use function substr;
 /**
  * A class for information about table foreign keys.
  */
-class ForeignKey extends MappingModel
+class ForeignKey extends MappingModel implements Stringable
 {
     /**
      * These constants are the uppercase equivalents of the onDelete / onUpdate
@@ -738,7 +740,7 @@ class ForeignKey extends MappingModel
     public function getInverseMapping(): array
     {
         /** @var array<array{0: string|\Propel\Generator\Model\Column, 1: \Propel\Generator\Model\Column}> */
-        return array_map('array_reverse', $this->getMapping());
+        return array_map(array_reverse(...), $this->getMapping());
     }
 
     /**

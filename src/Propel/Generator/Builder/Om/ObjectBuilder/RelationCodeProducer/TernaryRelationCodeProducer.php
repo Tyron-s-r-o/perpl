@@ -407,7 +407,7 @@ class TernaryRelationCodeProducer extends AbstractManyToManyCodeProducer
     #[\Override]
     protected function buildAdditionalCountMethods(): string
     {
-        $methods = array_map([$this, 'buildCountRelationMethod'], $this->crossRelation->getCrossForeignKeys());
+        $methods = array_map($this->buildCountRelationMethod(...), $this->crossRelation->getCrossForeignKeys());
 
         return implode('', $methods);
     }

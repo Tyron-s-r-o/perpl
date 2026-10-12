@@ -11,6 +11,7 @@ use Propel\Runtime\Map\Exception\RelationNotFoundException;
 use function array_find;
 use function array_key_exists;
 use function sprintf;
+use function str_starts_with;
 use function substr;
 
 /**
@@ -786,7 +787,7 @@ class TableMap
      */
     protected function getColumnOrValue(string $value, TableMap $table)
     {
-        if (substr($value, 0, 1) === ':') {
+        if (str_starts_with($value, ':')) {
             return $table->getColumn(substr($value, 1));
         } else {
             return $value;

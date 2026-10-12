@@ -6,15 +6,16 @@ namespace Propel\Runtime\ActiveQuery;
 
 use Propel\Runtime\Map\RelationMap;
 use Propel\Runtime\Map\TableMap;
+use Stringable;
 use function sprintf;
-use function strpos;
+use function str_starts_with;
 use function substr;
 
 /**
  * Data object to describe a joined hydration in a Model Query
  * ModelWith objects are used by formatters to hydrate related objects
  */
-class ModelWith
+class ModelWith implements Stringable
 {
     /**
      * @var string
@@ -122,7 +123,7 @@ class ModelWith
      */
     public function setModelName(string $modelName): void
     {
-        if (strpos($modelName, '\\') === 0) {
+        if (str_starts_with($modelName, '\\')) {
             $this->modelName = substr($modelName, 1);
         } else {
             $this->modelName = $modelName;

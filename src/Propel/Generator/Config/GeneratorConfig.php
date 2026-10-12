@@ -162,9 +162,7 @@ class GeneratorConfig extends AbstractGeneratorConfig
      */
     public function getBuildConnection(?string $databaseName = null): array
     {
-        if ($databaseName === null) {
-            $databaseName = $this->getConfigPropertyString('generator.defaultConnection', true);
-        }
+        $databaseName ??= $this->getConfigPropertyString('generator.defaultConnection', true);
 
         $connections = $this->getBuildConnections();
         if (array_key_exists($databaseName, $connections)) {

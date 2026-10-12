@@ -162,7 +162,7 @@ class SqliteSchemaParser extends AbstractSchemaParser
             $tableName = $row[0];
             $tableSchema = '';
 
-            if (substr($tableName, 0, 7) === 'sqlite_') {
+            if (str_starts_with($tableName, 'sqlite_')) {
                 continue;
             }
 
@@ -344,7 +344,7 @@ class SqliteSchemaParser extends AbstractSchemaParser
             $name = $row['name'];
             $internalName = $name;
 
-            if (strpos($name, 'sqlite_autoindex') === 0) {
+            if (str_starts_with($name, 'sqlite_autoindex')) {
                 $internalName = '';
             }
 

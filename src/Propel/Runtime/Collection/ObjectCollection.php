@@ -13,10 +13,9 @@ use Propel\Runtime\Exception\RuntimeException;
 use Propel\Runtime\Map\RelationMap;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Perpl;
-use function end;
+use function array_key_last;
 use function is_callable;
 use function is_object;
-use function key;
 use function method_exists;
 use function spl_object_hash;
 use function ucfirst;
@@ -29,9 +28,22 @@ use function ucfirst;
  */
 class ObjectCollection extends Collection
 {
+    /**
+     * Position in data by hash code of the object, see {@see static::getHashCode()}.
+     * Only valid if {@see static::$isIndexBuilt} is set, access through {@see static::ensureIndex()}.
+     */
     protected array $index = [];
 
+    /**
+     * Hash code by spl_object_hash of the object.
+     */
     protected array $indexSplHash = [];
+
+    /**
+     * The index is built on the first lookup, so that collections which are
+     * only filled and iterated (the common case after find()) never hash their objects.
+     */
+    protected bool $isIndexBuilt = false;
 
     /**
      * @param array<RowFormat> $data
@@ -39,7 +51,6 @@ class ObjectCollection extends Collection
     public function __construct(array $data = [])
     {
         parent::__construct($data);
-        $this->rebuildIndex();
     }
 
     /**
@@ -51,7 +62,7 @@ class ObjectCollection extends Collection
     public function exchangeArray(array $input): void
     {
         $this->data = $input;
-        $this->rebuildIndex();
+        $this->invalidateIndex();
     }
 
     /**
@@ -63,7 +74,7 @@ class ObjectCollection extends Collection
     public function setData(array $data): void
     {
         parent::setData($data);
-        $this->rebuildIndex();
+        $this->invalidateIndex();
     }
 
     /**
@@ -80,9 +91,7 @@ class ObjectCollection extends Collection
         if (!method_exists($this->getFullyQualifiedModel(), 'save')) {
             throw new ReadOnlyModelException('Cannot save objects on a read-only model');
         }
-        if ($con === null) {
-            $con = $this->getWriteConnection();
-        }
+        $con ??= $this->getWriteConnection();
         $con->transaction(function () use ($con): void {
             foreach ($this as $element) {
                 $element->save($con);
@@ -104,9 +113,7 @@ class ObjectCollection extends Collection
         if (!method_exists($this->getFullyQualifiedModel(), 'delete')) {
             throw new ReadOnlyModelException('Cannot delete objects on a read-only model');
         }
-        if ($con === null) {
-            $con = $this->getWriteConnection();
-        }
+        $con ??= $this->getWriteConnection();
         $con->transaction(function () use ($con): void {
             foreach ($this as $element) {
                 $element->delete($con);
@@ -421,17 +428,15 @@ class ObjectCollection extends Collection
     #[\Override]
     public function search($element)
     {
+        $this->ensureIndex();
         $splHash = spl_object_hash($element);
         if (isset($this->indexSplHash[$splHash])) {
             return $this->index[$this->indexSplHash[$splHash]];
         }
 
         $hashCode = $this->getHashCode($element);
-        if (isset($this->index[$hashCode])) {
-            return $this->index[$hashCode];
-        }
 
-        return false;
+        return $this->index[$hashCode] ?? false;
     }
 
     /**
@@ -442,10 +447,36 @@ class ObjectCollection extends Collection
         $this->index = [];
         $this->indexSplHash = [];
         foreach ($this->data as $idx => $value) {
+            if (!is_object($value)) {
+                continue;
+            }
             $hashCode = $this->getHashCode($value);
             $this->index[$hashCode] = $idx;
             $this->indexSplHash[spl_object_hash($value)] = $hashCode;
         }
+        $this->isIndexBuilt = true;
+    }
+
+    /**
+     * @return void
+     */
+    protected function ensureIndex(): void
+    {
+        if (!$this->isIndexBuilt) {
+            $this->rebuildIndex();
+        }
+    }
+
+    /**
+     * @return void
+     */
+    protected function invalidateIndex(): void
+    {
+        if ($this->isIndexBuilt || $this->index) {
+            $this->index = [];
+            $this->indexSplHash = [];
+        }
+        $this->isIndexBuilt = false;
     }
 
     /**
@@ -457,7 +488,7 @@ class ObjectCollection extends Collection
     public function offsetUnset($offset): void
     {
         if (isset($this->data[$offset])) {
-            if (is_object($this->data[$offset])) {
+            if ($this->isIndexBuilt && is_object($this->data[$offset])) {
                 unset($this->indexSplHash[spl_object_hash($this->data[$offset])]);
                 unset($this->index[$this->getHashCode($this->data[$offset])]);
             }
@@ -493,8 +524,10 @@ class ObjectCollection extends Collection
         }
 
         $this->data[] = $value;
-        end($this->data);
-        $pos = key($this->data);
+        if (!$this->isIndexBuilt) {
+            return;
+        }
+        $pos = array_key_last($this->data);
 
         $hashCode = $this->getHashCode($value);
         $this->index[$hashCode] = $pos;
@@ -516,12 +549,21 @@ class ObjectCollection extends Collection
             return;
         }
 
+        if (!$this->isIndexBuilt) {
+            if ($offset === null) {
+                $this->data[] = $value;
+            } else {
+                $this->data[$offset] = $value;
+            }
+
+            return;
+        }
+
         $hashCode = $this->getHashCode($value);
 
         if ($offset === null) {
             $this->data[] = $value;
-            end($this->data);
-            $pos = key($this->data);
+            $pos = array_key_last($this->data);
 
             $this->index[$hashCode] = $pos;
             $this->indexSplHash[spl_object_hash($value)] = $hashCode;
@@ -546,6 +588,8 @@ class ObjectCollection extends Collection
         if (!is_object($element)) {
             return parent::contains($element);
         }
+
+        $this->ensureIndex();
 
         return isset($this->indexSplHash[spl_object_hash($element)]) || isset($this->index[$this->getHashCode($element)]);
     }

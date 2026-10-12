@@ -962,7 +962,7 @@ ALTER TABLE %s DROP %s;
     #[\Override]
     public function getModifyColumnsDDL(array $columnDiffs): string
     {
-        $modifyColumnStatements = array_map([$this, 'getModifyColumnDDL'], $columnDiffs);
+        $modifyColumnStatements = array_map($this->getModifyColumnDDL(...), $columnDiffs);
 
         return implode('', $modifyColumnStatements);
     }

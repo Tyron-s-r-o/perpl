@@ -19,7 +19,6 @@ use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Model\Table;
-use Propel\Generator\Platform\MssqlPlatform;
 use Propel\Generator\Platform\PlatformInterface;
 use Propel\Runtime\ActiveQuery\ColumnResolver\ColumnExpression\LocalColumnExpression;
 use Propel\Runtime\ActiveQuery\Criteria;
@@ -36,19 +35,28 @@ use Propel\Runtime\Parser\AbstractParser;
 use Propel\Runtime\Perpl;
 use function addslashes;
 use function array_any;
+use function array_column;
 use function array_filter;
 use function array_intersect;
 use function array_map;
 use function array_values;
 use function count;
+use function explode;
 use function implode;
 use function in_array;
 use function lcfirst;
+use function ltrim;
+use function preg_match_all;
 use function sprintf;
-use function strpos;
+use function str_contains;
+use function str_ends_with;
+use function str_replace;
 use function strrpos;
+use function strtolower;
 use function strtoupper;
+use function substr;
 use function var_export;
+use const PREG_SET_ORDER;
 
 /**
  * Generates a base Object class for user object model (OM).
@@ -394,6 +402,9 @@ abstract class {$this->getUnqualifiedClassName()}$parentClass implements $interf
         foreach ($this->incomingRelationCodeProducers as $producer) {
             $producer->addScheduledForDeletionAttribute($script);
         }
+        if ($this->incomingRelationCodeProducers) {
+            $this->addIncomingRelationStateAttributes($script);
+        }
 
         if ($this->hasDefaultValues()) {
             $this->addApplyDefaultValues($script);
@@ -468,6 +479,7 @@ abstract class {$this->getUnqualifiedClassName()}$parentClass implements $interf
 
         // apply behaviors
         $this->applyBehaviorModifier('objectMethods', $script, '    ');
+        $this->resolveTransientProperties($script);
 
         if ($this->getBuildProperty('generator.objectModel.addHooks')) {
             $this->addHookMethods($script);
@@ -632,11 +644,11 @@ abstract class {$this->getUnqualifiedClassName()}$parentClass implements $interf
      */
     protected function addBaseObjectMethods(string &$script): void
     {
-        $this->declareClasses(
-            'ReflectionClass',
-            'ReflectionProperty',
-        );
-        $this->declareGlobalFunction('array_diff', 'array_key_exists', 'array_keys');
+        $hasParentClass = $this->getParentClass() !== null;
+        $this->declareGlobalFunction('array_diff_key', 'array_key_exists', 'array_keys', 'class_exists', 'property_exists', 'strpos', 'substr');
+        if ($hasParentClass) {
+            $this->declareGlobalFunction('get_parent_class', 'method_exists');
+        }
         $hasArrayKey = count($this->getTable()->getPrimaryKey()) > 1;
         if ($hasArrayKey) {
             $this->declareGlobalFunction('array_all');
@@ -646,7 +658,90 @@ abstract class {$this->getUnqualifiedClassName()}$parentClass implements $interf
             'className' => $this->getUnqualifiedClassName(),
             'hasArrayKey' => $hasArrayKey,
             'hasFks' => $this->getTable()->hasRelations(),
+            'hasParentClass' => $hasParentClass,
         ]);
+    }
+
+    /**
+     * State of one-to-many relations other than the loaded objects. It is kept in
+     * two arrays for all relations of the object, as most objects never use it.
+     *
+     * @param string $script
+     *
+     * @return void
+     */
+    protected function addIncomingRelationStateAttributes(string &$script): void
+    {
+        $script .= "
+    /**
+     * By property name of a collection: if the collection holds only part of the related objects.
+     * Without an entry, the collection was not loaded through its accessors yet.
+     *
+     * @var array<string, bool>
+     */
+    protected array \$partialFlagByCollection = [];
+
+    /**
+     * Objects removed from a relation, deleted or detached on save. By lowercased plural name of the relation.
+     *
+     * @var array<string, \\Propel\\Runtime\\Collection\\ObjectCollection>
+     */
+    protected array \$deletionsByCollection = [];\n";
+    }
+
+    /**
+     * Fills the list of properties which are not serialized into the script,
+     * see TRANSIENT_PROPERTIES in methodsTemplate.
+     *
+     * These are properties holding objects (related objects, collections, date
+     * objects), the flags belonging to collections, and the save guard. Column
+     * values, object state, and scalar properties added by behaviors are serialized.
+     *
+     * @param string $script
+     *
+     * @return void
+     */
+    protected function resolveTransientProperties(string &$script): void
+    {
+        $placeholder = '/*%TRANSIENT_PROPERTIES%*/';
+        if (!str_contains($script, $placeholder)) {
+            return;
+        }
+
+        $columnProperties = [];
+        foreach ($this->getTable()->getColumns() as $column) {
+            $columnProperties[$column->getLowercasedName()] = true;
+        }
+        $pattern = '/^    (protected|private|public) (?!static\b|const\b|function\b)(?:([^\s$=;]+) )?\$(\w+)(?: = [^;\n]+)?;/m';
+        preg_match_all($pattern, $script, $declarations, PREG_SET_ORDER);
+        $declaredProperties = array_column($declarations, 1, 3);
+
+        $scalarTypes = ['int' => true, 'float' => true, 'string' => true, 'bool' => true, 'array' => true, 'null' => true, 'mixed' => true, 'iterable' => true, 'true' => true, 'false' => true];
+        $transientEntries = '';
+        $serializedEntries = '';
+        foreach ($declarations as [, $visibility, $type, $name]) {
+            $key = match ($visibility) {
+                'protected' => '"\\0*\\0' . $name . '"',
+                'private' => '"\\0" . self::class . "\\0' . $name . '"',
+                default => "'$name'",
+            };
+            $typeParts = $type === '' ? [] : explode('|', ltrim($type, '?'));
+            $holdsObject = (bool)array_filter($typeParts, fn (string $part) => !isset($scalarTypes[strtolower($part)]));
+            $isCollectionFlag = str_ends_with($name, 'Partial') && isset($declaredProperties[substr($name, 0, -7)]);
+            $isInternalState = in_array($name, ['alreadyInSave', 'partialFlagByCollection', 'deletionsByCollection'], true);
+            $isTransient = !isset($columnProperties[$name]) && ($holdsObject || $isCollectionFlag || $isInternalState);
+            if ($isTransient) {
+                $transientEntries .= "\n        $key => true,";
+            } else {
+                $serializedEntries .= "\n        $key => '$name',";
+            }
+        }
+
+        $script = str_replace(
+            [$placeholder, '/*%SERIALIZED_PROPERTIES%*/'],
+            [$transientEntries ? "$transientEntries\n    " : '', $serializedEntries ? "$serializedEntries\n    " : ''],
+            $script,
+        );
     }
 
     /**
@@ -661,7 +756,7 @@ abstract class {$this->getUnqualifiedClassName()}$parentClass implements $interf
         $hooks = [];
         foreach (['pre', 'post'] as $hook) {
             foreach (['Insert', 'Update', 'Save', 'Delete'] as $action) {
-                $hooks[$hook . $action] = strpos($script, 'function ' . $hook . $action . '(') === false;
+                $hooks[$hook . $action] = !str_contains($script, 'function ' . $hook . $action . '(');
             }
         }
 
@@ -1462,7 +1557,7 @@ $indent};";
      * TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.
      * The default key type is the column's TableMap::$defaultKeyType.
      *
-     * @param mixed \$parser A AbstractParser instance, or a format name ('XML', 'YAML', 'JSON', 'CSV')
+     * @param mixed \$parser A AbstractParser instance, or a format name ('JSON')
      * @param string \$data The source data to import from
      * @param string \$keyType The type of keys the array uses.
      *
@@ -2158,9 +2253,6 @@ $indent};";
      */
     protected function addDoInsert(): string
     {
-        $table = $this->getTable();
-        $isMssql = $this->getPlatform() instanceof MssqlPlatform;
-
         $script = "
     /**
      * Insert the row in the database.
@@ -2168,102 +2260,19 @@ $indent};";
      * @see static::doSave()
      *
      * @param \Propel\Runtime\Connection\ConnectionInterface \$con";
-        if ($isMssql && $this->getTable()->getIdMethod() != IdMethod::NO_ID_METHOD) {
-            $script .= "
-     *
-     * @throws \Propel\Runtime\Exception\PropelException";
-        }
-        if (!$isMssql) {
-            $script .= "
+        $script .= "
      *
      * @throws \RuntimeException
-     * @throws \Propel\Runtime\Exception\PropelException";
-        }
-
-        $script .= "
+     * @throws \Propel\Runtime\Exception\PropelException
      *
      * @return void
      */
     protected function doInsert(ConnectionInterface \$con): void
     {";
-        if ($this->getPlatform() instanceof MssqlPlatform) {
-            if ($table->hasAutoIncrementPrimaryKey()) {
-                $script .= "
-        \$this->modifiedColumns[" . $this->getColumnConstant($table->getAutoIncrementPrimaryKey()) . '] = true;';
-            }
-            $script .= "
-        \$criteria = \$this->buildCriteria();";
-            if ($this->getTable()->getIdMethod() != IdMethod::NO_ID_METHOD) {
-                $script .= $this->addDoInsertBodyWithIdMethod();
-            } else {
-                $script .= $this->addDoInsertBodyStandard();
-            }
-        } else {
-            $script .= $this->addDoInsertBodyRaw();
-        }
+        $script .= $this->addDoInsertBodyRaw();
         $script .= "
         \$this->setNew(false);
     }\n";
-
-        return $script;
-    }
-
-    /**
-     * @return string
-     */
-    protected function addDoInsertBodyStandard(): string
-    {
-        return "
-        \$pk = \$criteria->doInsert(\$con);";
-    }
-
-    /**
-     * @return string
-     */
-    protected function addDoInsertBodyWithIdMethod(): string
-    {
-        $table = $this->getTable();
-        $script = '';
-        foreach ($table->getPrimaryKey() as $col) {
-            if (!$col->isAutoIncrement()) {
-                continue;
-            }
-            $colConst = $this->getColumnConstant($col);
-            if (!$table->isAllowPkInsert()) {
-                $script .= "
-        if (\$criteria->keyContainsValue($colConst) ) {
-            throw new PropelException('Cannot insert a value for auto-increment primary key (' . $colConst . ')');
-        }";
-                if (!$this->getPlatform()->supportsInsertNullPk()) {
-                    $script .= "
-        // remove pkey col since this table uses auto-increment and passing a null value for it is not valid
-        \$criteria->remove($colConst);";
-                }
-            } elseif (!$this->getPlatform()->supportsInsertNullPk()) {
-                $script .= "
-        // remove pkey col if it is null since this table does not accept that
-        if (\$criteria->hasUpdateValue($colConst) && !\$criteria->keyContainsValue($colConst) ) {
-            \$criteria->remove($colConst);
-        }";
-            }
-        }
-
-        $script .= $this->addDoInsertBodyStandard();
-
-        foreach ($table->getPrimaryKey() as $col) {
-            if (!$col->isAutoIncrement()) {
-                continue;
-            }
-            if ($table->isAllowPkInsert()) {
-                $script .= "
-        if (\$pk !== null) {
-            \$this->set" . $col->getPhpName() . "(\$pk);  //[IMV] update autoincrement primary key
-        }";
-            } else {
-                $script .= "
-        \$this->set" . $col->getPhpName() . '($pk);  //[IMV] update autoincrement primary key';
-            }
-        }
 
         return $script;
     }
@@ -2962,6 +2971,10 @@ $indent};";
         foreach ($vars as $varName) {
             $methodBodyCode .= "
         \$this->$varName = null;";
+        }
+        if ($this->incomingRelationCodeProducers) {
+            $methodBodyCode .= "
+        \$this->partialFlagByCollection = [];";
         }
 
         foreach ($this->fkRelationCodeProducers as $producer) {

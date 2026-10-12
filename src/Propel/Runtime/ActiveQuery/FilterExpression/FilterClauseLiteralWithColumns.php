@@ -142,7 +142,7 @@ class FilterClauseLiteralWithColumns extends AbstractFilterClauseLiteral
             $value = '| ' . implode(' | ', $value) . ' |';
         } elseif ($colMap->getType() === PropelTypes::ENUM_BINARY && $value !== null) {
             $value = is_array($value)
-                ? array_map([$colMap, 'getValueSetKey'], $value)
+                ? array_map($colMap->getValueSetKey(...), $value)
                 : $colMap->getValueSetKey($value);
         } elseif ($colMap->getType() === PropelTypes::SET_BINARY && $value !== null) {
             try {

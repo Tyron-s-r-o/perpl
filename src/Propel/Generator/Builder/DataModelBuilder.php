@@ -604,7 +604,7 @@ abstract class DataModelBuilder
      */
     public function declareClasses(string ...$classNames): array
     {
-        return array_map([$this, 'declareClass'], $classNames);
+        return array_map($this->declareClass(...), $classNames);
     }
 
     /**

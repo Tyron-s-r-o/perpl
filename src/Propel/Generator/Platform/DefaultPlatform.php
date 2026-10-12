@@ -344,9 +344,7 @@ class DefaultPlatform implements PlatformInterface
             $maxIdentifierLength = $this->getMaxColumnNameLength();
             if (!$idMethodParams) {
                 if (strlen($table->getName() . '_SEQ') > $maxIdentifierLength) {
-                    if (!isset($longNamesMap[$table->getName()])) {
-                        $longNamesMap[$table->getName()] = (string)(count($longNamesMap) + 1);
-                    }
+                    $longNamesMap[$table->getName()] ??= (string)(count($longNamesMap) + 1);
                     $result = substr($table->getName(), 0, $maxIdentifierLength - strlen('_SEQ_' . $longNamesMap[$table->getName()])) . '_SEQ_' . $longNamesMap[$table->getName()];
                 } else {
                     $result = substr($table->getName(), 0, $maxIdentifierLength - 4) . '_SEQ';
@@ -1200,9 +1198,7 @@ ALTER TABLE %s MODIFY %s;
         $table = null;
         foreach ($columnDiffs as $columnDiff) {
             $toColumn = $columnDiff->getToColumn();
-            if ($table === null) {
-                $table = $toColumn->getTable();
-            }
+            $table ??= $toColumn->getTable();
             $lines[] = $this->getColumnDDL($toColumn);
         }
 
@@ -1255,9 +1251,7 @@ ALTER TABLE %s ADD %s;
         $lines = [];
         $table = null;
         foreach ($columns as $column) {
-            if ($table === null) {
-                $table = $column->getTable();
-            }
+            $table ??= $column->getTable();
             $lines[] = $this->getColumnDDL($column);
         }
 

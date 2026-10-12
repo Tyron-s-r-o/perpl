@@ -39,6 +39,7 @@ use Propel\Runtime\Map\DatabaseMap;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Perpl;
 use Propel\Runtime\Util\PropelConditionalProxy;
+use Stringable;
 use function array_diff;
 use function array_intersect_key;
 use function array_key_exists;
@@ -63,7 +64,7 @@ use const E_USER_WARNING;
 /**
  * This is a utility class for holding criteria information for a query.
  */
-class Criteria
+class Criteria implements Stringable
 {
     /**
      * @var string
@@ -2485,6 +2486,45 @@ class Criteria
     }
 
     /**
+     * Registers a condition under a name without adding it to the query. Named
+     * conditions are added through combine(), where() or having().
+     *
+     * <code>
+     * $query->condition('cond1', 'Book.Title = ?', 'foo');
+     * </code>
+     *
+     * @param string $conditionName
+     * @param string $clause Pseudo SQL clause with column phpNames, e.g. 'Book.AuthorId = ?'
+     * @param mixed $value
+     * @param mixed $bindingType
+     *
+     * @return $this
+     */
+    public function condition(string $conditionName, string $clause, $value = null, $bindingType = null)
+    {
+        $this->getDeprecatedMethods()->condition($conditionName, $clause, $value, $bindingType);
+
+        return $this;
+    }
+
+    /**
+     * Combines named conditions with a logical operator. The result is added to
+     * the query, or registered as another named condition if a name is given.
+     *
+     * @param array<string> $conditionNames
+     * @param string $operator Criteria::LOGICAL_AND or Criteria::LOGICAL_OR
+     * @param string|null $name
+     *
+     * @return $this
+     */
+    public function combine(array $conditionNames = [], string $operator = self::LOGICAL_AND, ?string $name = null)
+    {
+        $this->getDeprecatedMethods()->combine($conditionNames, $operator, $name);
+
+        return $this;
+    }
+
+    /**
      * @return \Propel\Runtime\ActiveQuery\DeprecatedCriteriaMethods
      */
     protected function getDeprecatedMethods(): DeprecatedCriteriaMethods
@@ -2515,11 +2555,11 @@ class Criteria
             in_array($name, [
                 'getMap', 'keys', 'containsKey', 'keyContainsValue', 'getCriterion',
                 'getLastCriterion', 'getTablesColumns', 'getTablesColumns', 'getTableName',
-                'get', 'put', 'putAll', 'addCond', 'hasCond', 'getCond', 'combine',
+                'get', 'put', 'putAll', 'addCond', 'hasCond', 'getCond',
                 'getCriterionForConditions', 'addSelectQuery', 'remove', 'size',
                 'getNamedCriterions', 'getCriterionForCondition', 'quoteIdentifier',
                 'replaceNames', 'getPrimaryKey', 'getComparison', 'setUseTransaction',
-                'isUseTransaction', 'setSingleRecord', 'isSingleRecord', 'condition',
+                'isUseTransaction', 'setSingleRecord', 'isSingleRecord',
                 'getCriterionForClause', 'isWithOneToMany', 'convertValueForColumn',
                 'getColumnFromName', 'getColumnMapByColumnName', 'getRealColumnName',
                 'getParams', 'buildBindParams', 'addUsingAlias',

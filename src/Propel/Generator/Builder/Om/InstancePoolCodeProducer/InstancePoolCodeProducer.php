@@ -71,8 +71,8 @@ class InstancePoolCodeProducer extends AbstractSubsectionCodeProducer
             throw new LogicException('Cannot build pool key on table without PK');
         }
         $statementBuilder = $mightBeDbFormat
-            ? [$this, 'buildPossiblyUnconvertedValueToStringExpression']
-            : [$this, 'buildColumnValueToStringExpression'];
+            ? $this->buildPossiblyUnconvertedValueToStringExpression(...)
+            : $this->buildColumnValueToStringExpression(...);
         $statements = array_map($statementBuilder, array_keys($variableToColumn), $variableToColumn);
 
         if (count($statements) === 1) {

@@ -7,8 +7,8 @@ namespace Propel\Runtime\DataFetcher;
 use PDO;
 use Propel\Runtime\Map\TableMap;
 use function sprintf;
+use function str_starts_with;
 use function strtoupper;
-use function substr;
 use function trim;
 
 /**
@@ -75,9 +75,7 @@ class PDODataFetcher extends AbstractDataFetcher
     #[\Override]
     public function fetch(?int $style = null)
     {
-        if ($style === null) {
-            $style = $this->style;
-        }
+        $style ??= $this->style;
 
         /** @var \Propel\Runtime\Connection\StatementInterface $dataObject */
         $dataObject = $this->getDataObject();
@@ -96,9 +94,7 @@ class PDODataFetcher extends AbstractDataFetcher
      */
     public function fetchAll(?int $style = null, $fetch_argument = null, array $ctor_args = []): array
     {
-        if ($style === null) {
-            $style = $this->style;
-        }
+        $style ??= $this->style;
 
         /** @var \Propel\Runtime\Connection\StatementInterface $dataObject */
         $dataObject = $this->getDataObject();
@@ -190,7 +186,7 @@ class PDODataFetcher extends AbstractDataFetcher
     {
         if ($this->dataObject && $this->dataObject->getConnection()->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
             $lastQuery = $this->dataObject->getStatement()->queryString;
-            if (substr(trim(strtoupper($lastQuery)), 0, 7) === 'SELECT ') {
+            if (str_starts_with(trim(strtoupper($lastQuery)), 'SELECT ')) {
                 // SQLITE does not support rowCount() in 3.x on SELECTs anymore
                 // so emulate it
                 if ($this->cachedCount === null) {

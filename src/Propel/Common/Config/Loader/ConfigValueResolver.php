@@ -19,7 +19,7 @@ use function is_string;
 use function preg_replace_callback;
 use function sprintf;
 use function str_replace;
-use function strpos;
+use function str_starts_with;
 use function substr;
 
 /**
@@ -35,7 +35,7 @@ class ConfigValueResolver
      *
      * @var array
      */
-    private array $config;
+    private readonly array $config;
 
     /**
      * Directory of config file, used to replace __DIR__
@@ -187,7 +187,7 @@ class ConfigValueResolver
         }
 
         return is_array($value)
-            ? array_map([$this, 'unescapeValue'], $value)
+            ? array_map($this->unescapeValue(...), $value)
             : $value;
     }
 
@@ -243,7 +243,7 @@ class ConfigValueResolver
     private function parseEnvironmentParams(string $value): ?string
     {
         // env.variable is an environment variable
-        if (strpos($value, 'env.') !== 0) {
+        if (!str_starts_with($value, 'env.')) {
             return null;
         }
         $env = substr($value, 4);

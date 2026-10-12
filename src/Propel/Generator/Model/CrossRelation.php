@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Propel\Generator\Model;
 
 use Propel\Runtime\Exception\LogicException;
+use Stringable;
 use function array_filter;
 use function count;
 use function in_array;
@@ -40,7 +41,7 @@ use function in_array;
  *         getIncomingForeignKey() -> FK2
  *         getUnclassifiedPrimaryKeys() -> [PK3]
  */
-class CrossRelation
+class CrossRelation implements Stringable
 {
     /**
      * The source table.

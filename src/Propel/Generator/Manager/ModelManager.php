@@ -11,7 +11,6 @@ use SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
 use function file_get_contents;
 use function file_put_contents;
-use function get_class;
 use function sprintf;
 use const DIRECTORY_SEPARATOR;
 
@@ -189,7 +188,7 @@ class ModelManager extends AbstractManager
 
         // write / overwrite new / changed files
         $action = $file->isFile() ? 'Updating' : 'Creating';
-        $this->log(sprintf("\t-> %s %s (table: %s, builder: %s)", $action, $builder->getClassFilePath(), $builder->getTable()->getName(), get_class($builder)));
+        $this->log(sprintf("\t-> %s %s (table: %s, builder: %s)", $action, $builder->getClassFilePath(), $builder->getTable()->getName(), $builder::class));
         file_put_contents($file->getPathname(), $script);
 
         return 1;

@@ -14,9 +14,6 @@ use Propel\Runtime\Formatter\ObjectFormatter;
  */
 class RelationTableCollection extends ObjectCollection
 {
-    /**
-     * @param array $data
-     */
     public function __construct(array $data = [])
     {
         parent::__construct($data);
@@ -24,12 +21,6 @@ class RelationTableCollection extends ObjectCollection
         $this->setFormatter(new ObjectFormatter());
     }
 
-    /**
-     * @param \Propel\Runtime\ActiveQuery\Criteria|null $criteria
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con
-     *
-     * @return \Base\Collection\FkTableCollection
-     */
     public function populateLeRelatedObjects(?Criteria $criteria = null, ?ConnectionInterface $con = null): FkTableCollection
     {
         /** @var \Base\Collection\FkTableCollection $collection */

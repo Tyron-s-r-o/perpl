@@ -13,7 +13,6 @@ use Propel\Runtime\Connection\ConnectionWrapper;
 use Propel\Runtime\Connection\PdoConnection;
 use RuntimeException;
 use function class_exists;
-use function get_class;
 use function mb_ereg;
 use function mb_regex_encoding;
 use function method_exists;
@@ -84,7 +83,7 @@ class SqliteAdapter extends PdoAdapter implements SqlAdapterInterface
     {
         $unwrappedConnection = $con instanceof ConnectionWrapper ? $con->getWrappedConnection() : $con;
         if (!$unwrappedConnection instanceof PdoConnection) {
-            throw new RuntimeException('Expected PDO connection but got ' . get_class($con));
+            throw new RuntimeException('Expected PDO connection but got ' . $con::class);
         }
         $pdo = $unwrappedConnection->getPdo();
 
@@ -93,7 +92,7 @@ class SqliteAdapter extends PdoAdapter implements SqlAdapterInterface
         } elseif (method_exists($pdo, 'sqliteCreateFunction')) {
             $createFunction = 'sqliteCreateFunction'; // $pdo is PDO before PHP 8.5
         } else {
-            throw new RuntimeException(sprintf('Cannot create function on PDO class %s (PHP %s)', get_class($con), phpversion()));
+            throw new RuntimeException(sprintf('Cannot create function on PDO class %s (PHP %s)', $con::class, phpversion()));
         }
 
         $pdo->$createFunction($functionName, $callback);

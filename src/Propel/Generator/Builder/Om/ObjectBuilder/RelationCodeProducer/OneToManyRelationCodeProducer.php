@@ -63,12 +63,7 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
     /**
      * Objects associated via $relationIdentifier relation (1:n).
      */
-    protected $targetCollectionName|null $variable = null;
-
-    /**
-     * If $variable contains all objects in $relationIdentifier relation.
-     */
-    protected ?bool {$variable}Partial = null;\n";
+    protected $targetCollectionName|null $variable = null;\n";
     }
 
     /**
@@ -104,24 +99,24 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
         $lowerSingleRelatedName = lcfirst($this->relation->getIdentifierReversed());
         $queryClassName = $this->targetTableNames->useQueryStubClassName();
         $script .= "
-        if (\$this->{$lowerRelatedName}ScheduledForDeletion !== null) {
-            if (!\$this->{$lowerRelatedName}ScheduledForDeletion->isEmpty()) {";
+        if (isset(\$this->deletionsByCollection['{$lowerRelatedName}'])) {
+            if (!\$this->deletionsByCollection['{$lowerRelatedName}']->isEmpty()) {";
 
         if ($this->relation->isLocalColumnsRequired() || $this->relation->getOnDelete() === ForeignKey::CASCADE) {
             $script .= "
                 $queryClassName::create()
-                    ->filterByPrimaryKeys(\$this->{$lowerRelatedName}ScheduledForDeletion->getPrimaryKeys(false))
+                    ->filterByPrimaryKeys(\$this->deletionsByCollection['{$lowerRelatedName}']->getPrimaryKeys(false))
                     ->delete(\$con);";
         } else {
             $script .= "
-                foreach (\$this->{$lowerRelatedName}ScheduledForDeletion as \${$lowerSingleRelatedName}) {
+                foreach (\$this->deletionsByCollection['{$lowerRelatedName}'] as \${$lowerSingleRelatedName}) {
                     // need to save related object because we set the relation to null
                     \${$lowerSingleRelatedName}->save(\$con);
                 }";
         }
 
         $script .= "
-                \$this->{$lowerRelatedName}ScheduledForDeletion = null;
+                unset(\$this->deletionsByCollection['{$lowerRelatedName}']);
             }
         }\n";
     }
@@ -230,7 +225,7 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
 
         $attributeName = $this->getAttributeName();
 
-        $scheduledForDeletion = lcfirst($this->getRefFKPhpNameAffix($this->relation, true)) . 'ScheduledForDeletion';
+        $scheduledForDeletion = lcfirst($this->getRefFKPhpNameAffix($this->relation, true));
 
         $relationIdentifierSingular = $this->relation->getIdentifierReversed();
         $relationIdentifierPlural = $this->relation->getIdentifierReversed($this->getPluralizer());
@@ -248,14 +243,15 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
     {
         if (\$this->$attributeName === null) {
             \$this->init{$relationIdentifierPlural}();
-            \$this->{$attributeName}Partial = true;
+            \$this->partialFlagByCollection['{$attributeName}'] = true;
         }
 
         if (!\$this->{$attributeName}->contains($modelVar)) {
             \$this->doAdd{$relationIdentifierSingular}($modelVar);
 
-            if (\$this->{$scheduledForDeletion} && \$this->{$scheduledForDeletion}->contains($modelVar)) {
-                \$this->{$scheduledForDeletion}->remove(\$this->{$scheduledForDeletion}->search($modelVar));
+            \$scheduledForDeletion = \$this->deletionsByCollection['{$scheduledForDeletion}'] ?? null;
+            if (\$scheduledForDeletion && \$scheduledForDeletion->contains($modelVar)) {
+                \$scheduledForDeletion->remove(\$scheduledForDeletion->search($modelVar));
             }
         }
 
@@ -293,7 +289,7 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
      */
     public function count{$relCol}(?Criteria \$criteria = null, bool \$distinct = false, ?ConnectionInterface \$con = null): int
     {
-        \$partial = \$this->{$collName}Partial && !\$this->isNew();
+        \$partial = (\$this->partialFlagByCollection['{$collName}'] ?? false) && !\$this->isNew();
         if (\$this->$collName === null || \$criteria !== null || \$partial) {
             if (\$this->isNew() && \$this->$collName === null) {
                 return 0;
@@ -356,7 +352,7 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
      */
     public function get$relationIdentifierPlural(?Criteria \$criteria = null, ?ConnectionInterface \$con = null): $targetCollectionClassName
     {
-        \$partial = \$this->{$attributeName}Partial && !\$this->isNew();
+        \$partial = (\$this->partialFlagByCollection['{$attributeName}'] ?? false) && !\$this->isNew();
         if (\$this->$attributeName && !\$criteria && !\$partial) {
             return \$this->$attributeName;
         }
@@ -380,7 +376,7 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
             ->findObjects(\$con);
 
         if (\$criteria) {
-            if (\$this->{$attributeName}Partial !== false && count(\$$attributeName)) {
+            if ((\$this->partialFlagByCollection['{$attributeName}'] ?? null) !== false && count(\$$attributeName)) {
                 \$this->init{$relationIdentifierPlural}(false);
 
                 foreach (\$$attributeName as \$obj) {
@@ -389,13 +385,13 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
                     }
                 }
 
-                \$this->{$attributeName}Partial = true;
+                \$this->partialFlagByCollection['{$attributeName}'] = true;
             }
 
             return \$$attributeName;
         }
 
-        if (\$this->{$attributeName}Partial && \$this->$attributeName) {
+        if ((\$this->partialFlagByCollection['{$attributeName}'] ?? false) && \$this->$attributeName) {
             foreach (\$this->$attributeName as \$obj) {
                 if (\$obj->isNew()) {
                     \${$attributeName}[] = \$obj;
@@ -404,7 +400,7 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
         }
 
         \$this->$attributeName = \$$attributeName;
-        \$this->{$attributeName}Partial = false;
+        \$this->partialFlagByCollection['{$attributeName}'] = false;
 
         return \$this->$attributeName;
     }
@@ -456,11 +452,11 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
         //since at least one column in the foreign key is at the same time a PK
         //we can not just set a PK to NULL in the lines below. We have to store
         //a backup of all values, so we are able to manipulate these items based on the onDelete value later.
-        \$this->{$inputCollectionVar}ScheduledForDeletion = clone \${$inputCollectionVar}ToDelete;
+        \$this->deletionsByCollection['{$inputCollectionVar}'] = clone \${$inputCollectionVar}ToDelete;
 ";
         } else {
             $script .= "
-        \$this->{$inputCollectionVar}ScheduledForDeletion = \${$inputCollectionVar}ToDelete;\n";
+        \$this->deletionsByCollection['{$inputCollectionVar}'] = \${$inputCollectionVar}ToDelete;\n";
         }
 
         $script .= "
@@ -473,7 +469,7 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
             \$this->add{$relationIdentifierSingular}(\${$inputCollectionItem});
         }
 
-        \$this->{$attributeName}Partial = false;
+        \$this->partialFlagByCollection['{$attributeName}'] = false;
         \$this->{$attributeName} = \${$inputCollectionVar} instanceof $targetCollectionType
             ? \${$inputCollectionVar} : new $targetCollectionType(\${$inputCollectionVar}->getData());
 
@@ -526,7 +522,7 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
         $relationIdentifierPlural = $this->relation->getIdentifierReversed($this->getPluralizer());
         $relationIdentifierSingular = $this->relation->getIdentifierReversed();
 
-        $inputCollection = lcfirst($relationIdentifierPlural . 'ScheduledForDeletion');
+        $inputCollection = lcfirst($relationIdentifierPlural);
         $lowerRelatedObjectClassName = lcfirst($relationIdentifierSingular);
 
         $collName = $this->getAttributeName();
@@ -544,11 +540,11 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
         if (\$this->get{$relationIdentifierPlural}()->contains(\${$lowerRelatedObjectClassName})) {
             \$pos = \$this->{$collName}->search(\${$lowerRelatedObjectClassName});
             \$this->{$collName}->remove(\$pos);
-            if (\$this->{$inputCollection} === null) {
-                \$this->{$inputCollection} = clone \$this->{$collName};
-                \$this->{$inputCollection}->clear();
+            if (!isset(\$this->deletionsByCollection['{$inputCollection}'])) {
+                \$this->deletionsByCollection['{$inputCollection}'] = clone \$this->{$collName};
+                \$this->deletionsByCollection['{$inputCollection}']->clear();
             }
-            \$this->{$inputCollection}->append($maybeClone\${$lowerRelatedObjectClassName});
+            \$this->deletionsByCollection['{$inputCollection}']->append($maybeClone\${$lowerRelatedObjectClassName});
             \${$lowerRelatedObjectClassName}->set{$reversedRelationIdentifierSingular}(null);
         }
 
@@ -579,7 +575,7 @@ class OneToManyRelationCodeProducer extends AbstractIncomingRelationCode
      */
     public function resetPartial{$relCol}(bool \$isPartial = true): void
     {
-        \$this->{$attributeName}Partial = \$isPartial;
+        \$this->partialFlagByCollection['{$attributeName}'] = \$isPartial;
     }
 ";
     }

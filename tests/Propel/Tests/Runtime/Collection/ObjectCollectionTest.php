@@ -198,7 +198,7 @@ class ObjectCollectionTest extends BookstoreTestBase
         $partialAccessor = new class extends Author{
             public static function getIsPartial(Author $a)
             {
-                return $a->collBooksPartial;
+                return $a->partialFlagByCollection['collBooks'] ?? null;
             }
         };
         $authors = AuthorQuery::create()->limit(1)->find($this->con);

@@ -33,8 +33,8 @@ use function is_string;
 use function preg_replace;
 use function rewind;
 use function sprintf;
+use function str_contains;
 use function str_replace;
-use function strpos;
 use function strrpos;
 use function strtolower;
 use function substr;
@@ -113,7 +113,7 @@ abstract class PdoAdapter
     {
         $driverOptions = [];
         foreach ($options as $option => $value) {
-            if (!is_string($value) || strpos($value, '::') === false) {
+            if (!is_string($value) || !str_contains($value, '::')) {
                 $driverOptions[$option] = $value;
 
                 continue;
@@ -324,7 +324,7 @@ abstract class PdoAdapter
      */
     public function quoteIdentifierTable(string $table): string
     {
-        return implode(' ', array_map([$this, 'quoteIdentifier'], explode(' ', $table)));
+        return implode(' ', array_map($this->quoteIdentifier(...), explode(' ', $table)));
     }
 
     /**
@@ -561,13 +561,13 @@ abstract class PdoAdapter
     {
         $selected = [];
         foreach ($criteria->getSelectColumns() as $columnName) {
-            if (strpos($columnName, '(') === false) {
+            if (!str_contains($columnName, '(')) {
                 $selected[] = $columnName;
             }
         }
 
         foreach ($criteria->getAsColumns() as $col) {
-            if (strpos($col, '(') === false && !in_array($col, $selected, true)) {
+            if (!str_contains($col, '(') && !in_array($col, $selected, true)) {
                 $selected[] = $col;
             }
         }

@@ -20,7 +20,7 @@ use function file_exists;
 use function getcwd;
 use function json_decode;
 use function sprintf;
-use function strpos;
+use function str_contains;
 
 /**
  * Service class to find composer and installed packages
@@ -160,7 +160,7 @@ class BehaviorLocator
      */
     public function getBehavior(string $name): string
     {
-        if (strpos($name, '\\') !== false) {
+        if (str_contains($name, '\\')) {
             $class = $name;
         } else {
             $class = $this->getCoreBehavior($name);

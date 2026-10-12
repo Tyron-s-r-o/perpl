@@ -196,9 +196,7 @@ class ArchivableBehavior extends SyncedTableBehavior
     #[\Override]
     public function getObjectBuilderModifier()
     {
-        if ($this->objectBuilderModifier === null) {
-            $this->objectBuilderModifier = new ArchivableBehaviorObjectBuilderModifier($this);
-        }
+        $this->objectBuilderModifier ??= new ArchivableBehaviorObjectBuilderModifier($this);
 
         return $this->objectBuilderModifier;
     }
@@ -209,9 +207,7 @@ class ArchivableBehavior extends SyncedTableBehavior
     #[\Override]
     public function getQueryBuilderModifier()
     {
-        if ($this->queryBuilderModifier === null) {
-            $this->queryBuilderModifier = new ArchivableBehaviorQueryBuilderModifier($this);
-        }
+        $this->queryBuilderModifier ??= new ArchivableBehaviorQueryBuilderModifier($this);
 
         return $this->queryBuilderModifier;
     }

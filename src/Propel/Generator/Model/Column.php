@@ -460,9 +460,7 @@ class Column extends MappingModel
      */
     public function getDomain(): Domain
     {
-        if ($this->domain === null) {
-            $this->domain = new Domain();
-        }
+        $this->domain ??= new Domain();
 
         return $this->domain;
     }
@@ -589,9 +587,7 @@ class Column extends MappingModel
      */
     public function getPhpName(): string
     {
-        if ($this->phpName === null) {
-            $this->phpName = $this->buildPhpName();
-        }
+        $this->phpName ??= $this->buildPhpName();
 
         return $this->phpName;
     }
@@ -605,9 +601,7 @@ class Column extends MappingModel
      */
     public function getPhpSingularName(): string
     {
-        if ($this->phpSingularName === null) {
-            $this->phpSingularName = self::generatePhpSingularName($this->getPhpName());
-        }
+        $this->phpSingularName ??= self::generatePhpSingularName($this->getPhpName());
 
         return $this->phpSingularName;
     }
@@ -1828,9 +1822,7 @@ class Column extends MappingModel
      */
     public static function generatePhpName(string $name, ?string $phpNamingMethod = null, ?string $namePrefix = null): string
     {
-        if ($phpNamingMethod === null) {
-            $phpNamingMethod = NameGeneratorInterface::CONV_METHOD_CLEAN;
-        }
+        $phpNamingMethod ??= NameGeneratorInterface::CONV_METHOD_CLEAN;
 
         return NameFactory::generateName(NameFactory::PHP_GENERATOR, [$name, $phpNamingMethod, (string)$namePrefix]);
     }

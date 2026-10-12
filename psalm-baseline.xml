@@ -53,33 +53,12 @@
       <code><![CDATA[preg_replace($searchPattern, $result, $root)]]></code>
     </NullableReturnStatement>
   </file>
-  <file src="src/Propel/Generator/Behavior/AggregateMultipleColumns/AggregateMultipleColumnsBehavior.php">
-    <UnsupportedPropertyReferenceUsage>
-      <code><![CDATA[$existingNames = &self::$insertedAggregationNames[$tableName]]]></code>
-    </UnsupportedPropertyReferenceUsage>
-  </file>
   <file src="src/Propel/Generator/Behavior/Archivable/ArchivableBehavior.php">
     <InvalidNullableReturnType>
       <code><![CDATA[string]]></code>
     </InvalidNullableReturnType>
     <NullableReturnStatement>
       <code><![CDATA[$this->getParameter('archive_class')]]></code>
-    </NullableReturnStatement>
-  </file>
-  <file src="src/Propel/Generator/Behavior/OutputGroup/OgObjectModifier.php">
-    <InvalidNullableReturnType>
-      <code><![CDATA[string]]></code>
-    </InvalidNullableReturnType>
-    <NullableReturnStatement>
-      <code><![CDATA[preg_replace_callback($pattern, fn (array $match) => "{$match[0]}, \\$interface", $script, 1)]]></code>
-    </NullableReturnStatement>
-  </file>
-  <file src="src/Propel/Generator/Behavior/OutputGroup/OgQueryModifier.php">
-    <InvalidNullableReturnType>
-      <code><![CDATA[string]]></code>
-    </InvalidNullableReturnType>
-    <NullableReturnStatement>
-      <code><![CDATA[preg_replace_callback($pattern, fn (array $match) => $methodDeclarations . $match[0], $script, 1)]]></code>
     </NullableReturnStatement>
   </file>
   <file src="src/Propel/Generator/Behavior/SyncedTable/TableSyncer/TableSyncer.php">
@@ -283,10 +262,5 @@
     <InvalidArrayOffset>
       <code><![CDATA[$suffix[$i]]]></code>
     </InvalidArrayOffset>
-  </file>
-  <file src="src/Propel/Runtime/Validator/Constraints/UniqueValidator.php">
-    <MoreSpecificImplementedParamType>
-      <code><![CDATA[$constraint]]></code>
-    </MoreSpecificImplementedParamType>
   </file>
 </files>

@@ -46,7 +46,6 @@ use function sprintf;
 use function str_contains;
 use function str_replace;
 use function str_starts_with;
-use function strpos;
 use function substr;
 use function sys_get_temp_dir;
 use function token_get_all;
@@ -193,9 +192,7 @@ class QuickBuilder
      */
     public function getPlatform(): PlatformInterface
     {
-        if ($this->platform === null) {
-            $this->platform = new SqlitePlatform();
-        }
+        $this->platform ??= new SqlitePlatform();
 
         $this->platform->setIdentifierQuoting($this->identifierQuoting);
 
@@ -221,9 +218,7 @@ class QuickBuilder
      */
     public function getConfig(): AbstractGeneratorConfig
     {
-        if ($this->config === null) {
-            $this->config = new QuickGeneratorConfig();
-        }
+        $this->config ??= new QuickGeneratorConfig();
 
         return $this->config;
     }
@@ -311,8 +306,8 @@ class QuickBuilder
         ?AdapterInterface $adapter = null,
         ?array $classTargets = null
     ): ConnectionWrapper {
-        $dsn = $dsn ?? 'sqlite::memory:';
-        $adapter = $adapter ?? new SqliteAdapter();
+        $dsn ??= 'sqlite::memory:';
+        $adapter ??= new SqliteAdapter();
         $classTargets ??= static::getDefaultClassTargets();
 
         $pdo = new PdoConnection($dsn, $user, $pass, [], $adapter->getPdoSubclass());
@@ -356,7 +351,7 @@ class QuickBuilder
         $sql = $this->getSQL();
         $statements = SqlParser::parseString($sql);
         foreach ($statements as $statement) {
-            if (strpos($statement, 'DROP') === 0) {
+            if (str_starts_with($statement, 'DROP')) {
                 // drop statements cause errors since the table doesn't exist
                 continue;
             }

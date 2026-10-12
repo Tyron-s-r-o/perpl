@@ -164,9 +164,7 @@ class SqlManager extends AbstractManager
                 break;
             }
 
-            if (!isset($statementsToInsert[$database])) {
-                $statementsToInsert[$database] = [];
-            }
+            $statementsToInsert[$database] ??= [];
 
             if ($datasource === null || $database === $datasource) {
                 $filename = $this->getWorkingDirectory() . DIRECTORY_SEPARATOR . $sqlFile;
@@ -234,7 +232,7 @@ class SqlManager extends AbstractManager
 
         try {
             return ConnectionFactory::create(['dsn' => $dsn, 'user' => $username, 'password' => $password], AdapterFactory::create($buildConnection['adapter']));
-        } catch (ConnectionException $e) {
+        } catch (ConnectionException) {
             throw new ConnectionException("Could not open connection `$datasource`, check dsn, username and password.");
         }
     }
